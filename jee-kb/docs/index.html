@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>JEE Knowledge Base</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+</head>
+<body>
+<header>
+    <h1>JEE Knowledge Base</h1>
+    <p>Physics • Chemistry • Maths • English • Computer Science</p>
+</header>
+
+<main class="grid">
+    <section class="card">
+        <h2>Search</h2>
+
+        <div class="row">
+            <input id="q" placeholder="Search topic, formula, concept…" />
+        </div>
+
+        <div class="row">
+            <select id="subject">
+                <option value="">All Subjects</option>
+                <option>Physics</option>
+                <option>Chemistry</option>
+                <option>Maths</option>
+                <option>English</option>
+                <option>Computer Science</option>
+            </select>
+
+            <select id="exam">
+                <option value="">All Levels</option>
+                <option>School</option>
+                <option>JEE_Main</option>
+                <option>JEE_Advanced</option>
+            </select>
+        </div>
+
+        <div id="results"></div>
+    </section>
+
+    <section class="card">
+        <h2>Add Content (Voice / Text)</h2>
+
+        <div class="row">
+            <select id="add_subject">
+                <option>Physics</option><option>Chemistry</option><option>Maths</option>
+                <option>English</option><option>Computer Science</option>
+            </select>
+            <input id="add_topic" placeholder="Topic path e.g. Mechanics/Laws of Motion" />
+        </div>
+
+        <div class="row">
+            <select id="add_exam">
+                <option>School</option>
+                <option>JEE_Main</option>
+                <option>JEE_Advanced</option>
+            </select>
+            <input id="add_tags" placeholder="tags: friction, fbd, newton" />
+        </div>
+
+        <div class="row">
+            <input id="add_title" placeholder="Title e.g. Newton’s Laws" />
+        </div>
+
+        <div class="row">
+            <button id="mic">🎙 Start Voice</button>
+            <button id="stopMic" disabled>⏹ Stop</button>
+        </div>
+
+        <textarea id="add_body" rows="12" placeholder="Write your note in Markdown…"></textarea>
+
+        <div class="row">
+            <button id="gen">Generate Markdown</button>
+            <button id="openGithub" disabled>Open GitHub to Commit</button>
+        </div>
+
+        <pre id="mdPreview" class="preview"></pre>
+    </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
