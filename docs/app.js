@@ -8,7 +8,7 @@ async function loadIndex() {
   fuse = new Fuse(KB, {
     includeScore: true,
     threshold: 0.35,
-    keys: ["title", "subject", "exam", "topic", "tags", "text"]
+    keys: ["title","subject","exam","topic","tags","text","filename","path","slug"]
   });
 
   renderResults(KB.slice(0, 30));
@@ -42,7 +42,13 @@ function doSearch() {
 
   let base = KB;
   if (subject) base = base.filter(x => x.subject === subject);
-  if (exam) base = base.filter(x => x.exam === exam);
+  if (exam) {
+    base = base.filter(x => {
+      if (!x.exam) return true; // <-- allow notes with no exam metadata
+      if (Array.isArray(x.exam)) return x.exam.includes(exam);
+      return x.exam === exam;
+    });
+  }
 
   if (!q) {
     renderResults(base.slice(0, 30));
