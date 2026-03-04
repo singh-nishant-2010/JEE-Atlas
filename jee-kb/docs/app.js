@@ -141,9 +141,8 @@ ${body || "Write your content here..."}
 }
 
 function openGithubCommit() {
-  // You must set your repo owner/name here:
-  const OWNER = "<YOUR_GITHUB_USERNAME_OR_ORG>";
-  const REPO = "<YOUR_REPO_NAME>"; // e.g. "jee-kb"
+  const OWNER = "singh-nishant-2010";
+  const REPO = "JEE-Atlas";
 
   const subject = document.getElementById("add_subject").value;
   const topic = document.getElementById("add_topic").value.trim() || "general";
