@@ -16,6 +16,11 @@
 
   --result-border: #d0d7de;
   --snippet: #2b3a4a;
+
+  /* Toggle colors (light mode) */
+  --toggle-track: #e6e8ec;
+  --toggle-knob: #1f2328;
+  --toggle-icon: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -36,9 +41,14 @@
 
   --result-border: #1d2a3a;
   --snippet: #cfe1f2;
+
+  /* Toggle colors (dark mode) */
+  --toggle-track: #111a24;
+  --toggle-knob: #e8eef6;
+  --toggle-icon: #0b0f14;
 }
 
-/* Prevent padding/border from causing overflow */
+/* Prevent padding/border overflow */
 * { box-sizing: border-box; }
 
 body {
@@ -56,77 +66,101 @@ header {
 h1 { margin: 0 0 6px 0; }
 p { margin: 0; color: var(--muted); }
 
-/* Header layout */
+/* Header layout: title left, toggle extreme right */
 .header-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  width: 100%;
   gap: 12px;
 }
 
-/* ---------- Theme toggle slider ---------- */
-.theme-switch {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  user-select: none;
-  flex-shrink: 0;
+.header-top h1 {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.theme-ico { font-size: 16px; opacity: 0.9; }
+/* ---------- Theme toggle ---------- */
+.theme-switch {
+  margin-left: auto;      /* extreme right */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.theme-ico { font-size: 16px; opacity: 0.95; }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 54px;
-  height: 30px;
+  width: 92px;
+  height: 44px;
 }
 
-/* hide checkbox but keep accessible */
+/* Hide checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
+/* Track */
 .slider {
   position: absolute;
-  cursor: pointer;
   inset: 0;
   border-radius: 999px;
+  background: var(--toggle-track);
   border: 1px solid var(--border);
-  background: var(--input);
-  transition: 0.2s;
+  transition: 0.2s ease;
+  cursor: pointer;
 }
 
-/* knob */
+/* Knob */
 .slider::before {
   content: "";
   position: absolute;
-  height: 24px;
-  width: 24px;
-  left: 3px;
+  width: 38px;
+  height: 38px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-  transition: 0.2s;
+  background: var(--toggle-knob);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+  transition: 0.2s ease;
 }
 
-.switch input:checked + .slider {
-  background: var(--button-bg);
+/* Crescent moon icon inside knob */
+.slider::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999px;
+
+  /* crescent: light circle + shadow cutout */
+  background: var(--toggle-icon);
+  box-shadow: 6px 0 0 0 var(--toggle-knob);
+  transition: 0.2s ease;
 }
 
+/* Checked state: move knob to right */
 .switch input:checked + .slider::before {
-  transform: translate(24px, -50%);
+  transform: translate(46px, -50%);
+}
+.switch input:checked + .slider::after {
+  transform: translate(46px, -50%);
 }
 
-/* nice focus ring */
+/* Focus ring */
 .switch input:focus-visible + .slider {
   outline: 2px solid var(--link);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
 /* Layout */
@@ -144,7 +178,6 @@ p { margin: 0; color: var(--muted); }
   padding: 16px;
 }
 
-/* Rows must allow children to shrink on small screens */
 .row {
   display: flex;
   gap: 10px;
@@ -153,7 +186,6 @@ p { margin: 0; color: var(--muted); }
   min-width: 0;
 }
 
-/* Inputs */
 input, select, textarea {
   width: 100%;
   max-width: 100%;
@@ -169,33 +201,21 @@ input, select, textarea {
 }
 
 input::placeholder, textarea::placeholder { color: var(--muted); }
-
-/* Prevent placeholder/text causing horizontal overflow in rare cases */
 input, textarea { overflow-wrap: anywhere; }
 
-/* Buttons */
 button {
   padding: 10px 12px;
   border-radius: 10px;
-
   border: 1px solid var(--button-border);
   background: var(--button-bg);
   color: var(--text);
-
   cursor: pointer;
   max-width: 100%;
 }
-
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Results */
-.result {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--result-border);
-}
-
+.result { padding: 10px 0; border-bottom: 1px solid var(--result-border); }
 .result a { color: var(--link); text-decoration: none; }
-
 .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
 .snippet { color: var(--snippet); font-size: 13px; margin-top: 6px; }
 
@@ -209,64 +229,36 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .muted { color: var(--muted); }
 
-/* Pager */
-.pager {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.pager button { width: auto; }
+.pager { display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap: wrap; }
+.pager button { width:auto; }
 
 /* ---------- Mobile responsiveness ---------- */
 @media (max-width: 900px) {
   header { padding: 16px; }
-  h1 { font-size: 30px; line-height: 1.1; }
-  header p { font-size: 15px; }
+  h1 { font-size: 24px; line-height: 1.1; margin: 0; }
+  header p { font-size: 14px; margin-top: 10px; }
 
-  .grid {
-    grid-template-columns: 1fr;   /* 1 column on mobile */
-    padding: 12px;
-    gap: 12px;
-  }
+  /* keep toggle on the right and scaled to fit */
+  .theme-switch { gap: 8px; }
+  .theme-ico { font-size: 14px; }
+  .switch { width: 78px; height: 38px; }
+  .slider::before { width: 32px; height: 32px; }
+  .slider::after  { width: 16px; height: 16px; left: 12px; box-shadow: 5px 0 0 0 var(--toggle-knob); }
+  .switch input:checked + .slider::before { transform: translate(38px, -50%); }
+  .switch input:checked + .slider::after  { transform: translate(38px, -50%); }
 
-  .card {
-    padding: 12px;
-    border-radius: 14px;
-  }
+  .grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+  .card { padding: 12px; }
 
-  .row {
-    flex-direction: column;       /* stack inputs */
-    gap: 10px;
-  }
+  .row { flex-direction: column; gap: 10px; }
 
-  input, select, textarea {
-    font-size: 16px;              /* prevents iOS zoom + better readability */
-    padding: 12px;
-  }
-
-  button {
-    font-size: 16px;
-    padding: 12px;
-  }
+  input, select, textarea { font-size: 16px; padding: 12px; }
+  button { font-size: 16px; padding: 12px; }
 
   .result { padding: 12px 0; }
   .snippet { font-size: 14px; }
-  .meta { font-size: 12px; }
-
-  /* Keep toggle nicely aligned on small screens */
-  .theme-switch { gap: 8px; }
-  .switch { width: 52px; height: 30px; }
 }
 
-/* Make markdown viewer readable */
-#content, .md {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-@media (max-width: 900px) {
-  #content, .md { padding: 0; }
-}
+/* Markdown viewer */
+#content, .md { max-width: 900px; margin: 0 auto; }
+@media (max-width: 900px) { #content, .md { padding: 0; } }
