@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>View Note</title>
+    <link rel="stylesheet" href="style.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<header>
+    <a href="./" style="color:#8bd5ff;text-decoration:none;">← Back</a>
+    <h1 id="title" style="margin-top:10px;">Loading…</h1>
+</header>
+
+<main class="card" style="margin:16px;">
+    <div id="content" class="md"></div>
+</main>
+
+<script>
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    function stripFrontmatter(md) {
+      if (md.startsWith("---")) {
+        const parts = md.split("---");
+        if (parts.length >= 3) return parts.slice(2).join("---").trim();
+      }
+      return md;
+    }
+
+    const path = getParam("path");
+    if (!path) {
+      document.getElementById("title").textContent = "Missing path";
+      document.getElementById("content").textContent = "No note path provided.";
+    } else {
+      fetch("../" + path) // because site root is /docs, kb is at repo root (not served). See Step 2.
+        .then(r => {
+          if (!r.ok) throw new Error("Failed to load: " + path);
+          return r.text();
+        })
+        .then(md => {
+          const clean = stripFrontmatter(md);
+          // title: first h1 if present
+          const match = clean.match(/^#\s+(.+)$/m);
+          document.getElementById("title").textContent = match ? match[1].trim() : path;
+          document.getElementById("content").innerHTML = marked.parse(clean);
+        })
+        .catch(err => {
+          document.getElementById("title").textContent = "Error opening note";
+          document.getElementById("content").textContent = err.message;
+        });
+    }
+  </script>
+</body>
+</html>
