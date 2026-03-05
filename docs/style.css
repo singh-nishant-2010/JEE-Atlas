@@ -79,6 +79,30 @@ p { margin: 0; color: var(--muted); }
   min-width: 0;
 }
 
+.ai-launch{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-left: 12px;
+  flex: 0 0 auto;
+}
+
+.ask-ai{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+}
+
+.ai-ico{ font-size:16px; line-height:1; }
+
+/* Mobile: keep it compact */
+@media (max-width: 900px){
+  .ai-launch{ gap:8px; }
+  #aiProvider{ max-width: 140px; }
+  .ask-ai{ padding: 10px 10px; }
+}
+
 /* ---------- Theme toggle ---------- */
 .theme-switch {
   margin-left: auto;      /* extreme right */

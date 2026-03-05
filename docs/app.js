@@ -269,3 +269,72 @@ themeToggle.addEventListener("change", () => {
 });
 
 initTheme();
+
+
+function getSelectedSubject() {
+  // Your existing subject filter dropdown
+  const sel = document.getElementById("subject");
+  return sel ? (sel.value || "").trim() : "";
+}
+
+function basePromptForSubject(subject) {
+  // subject values in your UI are like: "Physics", "Chemistry", "Maths", "English", "Computer Science"
+  // If empty -> general tutor
+  const common =
+    "Explain clearly, step-by-step. Include key formulas/rules, common mistakes, shortcuts, and 2-3 quick practice questions with answers.";
+
+  switch (subject) {
+    case "Physics":
+      return `You are an expert IIT JEE (Main + Advanced) Physics tutor. Focus on concepts, derivations, free-body diagrams, units/dimensions, graphs, and common JEE traps. ${common}`;
+    case "Chemistry":
+      return `You are an expert IIT JEE (Main + Advanced) Chemistry tutor (Physical, Organic, Inorganic). Use mechanisms where needed, key trends, exceptions, and memory hacks. ${common}`;
+    case "Maths":
+      return `You are an expert IIT JEE (Main + Advanced) Mathematics tutor. Emphasize method selection, speed tricks, standard results, and clean step-by-step solutions. ${common}`;
+    case "English":
+      return `You are an expert Class 11-12 English teacher. Focus on grammar rules, writing formats, comprehension strategy, and examples. ${common}`;
+    case "Computer Science":
+      return `You are an expert Class 11-12 Computer Science teacher (Python + fundamentals). Provide clear explanations, code examples, common errors, and short practice problems. ${common}`;
+    default:
+      return `You are an expert teacher for IIT JEE (Main + Advanced) Physics, Chemistry, Maths and Class 11-12 English & Computer Science. ${common}`;
+  }
+}
+
+function buildPrompt() {
+  const q = (document.getElementById("q")?.value || "").trim(); // search box text
+  const subject = getSelectedSubject();
+
+  const base = basePromptForSubject(subject);
+
+  // User adds rest of the prompt (their query). If empty, leave a placeholder.
+  const userPart = q ? q : "(Type your doubt/question here)";
+
+  return `${base}\n\nUser question/topic:\n${userPart}`;
+}
+
+function openSelectedAI() {
+  const provider = document.getElementById("aiProvider").value;
+  const prompt = buildPrompt();
+  const encoded = encodeURIComponent(prompt);
+
+  // NOTE:
+  // Some apps support query params (Perplexity). Some don't (ChatGPT/Claude/Gemini often change deep links).
+  // We will open the service and also copy the prompt to clipboard for reliability.
+
+  const links = {
+    chatgpt: "https://chat.openai.com/",
+    claude: "https://claude.ai/",
+    gemini: "https://gemini.google.com/",
+    copilot: "https://copilot.microsoft.com/",
+    perplexity: `https://www.perplexity.ai/?q=${encoded}`
+  };
+
+  const url = links[provider] || links.chatgpt;
+
+  // Copy prompt so user can paste immediately
+  navigator.clipboard?.writeText(prompt).catch(() => {});
+
+  window.open(url, "_blank");
+  alert("Prompt copied to clipboard. Paste it in the opened AI chat.");
+}
+
+document.getElementById("askAiBtn").addEventListener("click", openSelectedAI);
