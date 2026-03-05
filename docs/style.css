@@ -90,7 +90,23 @@ p { margin: 0; color: var(--muted); }
   user-select: none;
 }
 
-.theme-ico { font-size: 16px; opacity: 0.95; }
+/* Better-looking icons than emoji */
+.theme-ico {
+  font-size: 18px;
+  transition: 0.25s;
+  opacity: 0.45;
+  line-height: 1;
+}
+
+/* Sun color */
+.theme-ico.sun { color: #f5b301; }
+
+/* Moon color */
+.theme-ico.moon { color: #7aa2ff; }
+
+/* Active highlight */
+[data-theme="light"] .theme-ico.sun { opacity: 1; }
+[data-theme="dark"] .theme-ico.moon { opacity: 1; }
 
 .switch {
   position: relative;
@@ -132,7 +148,7 @@ p { margin: 0; color: var(--muted); }
   transition: 0.2s ease;
 }
 
-/* Crescent moon icon inside knob */
+/* Crescent icon inside knob (minimal, classy) */
 .slider::after {
   content: "";
   position: absolute;
@@ -142,8 +158,6 @@ p { margin: 0; color: var(--muted); }
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
-
-  /* crescent: light circle + shadow cutout */
   background: var(--toggle-icon);
   box-shadow: 6px 0 0 0 var(--toggle-knob);
   transition: 0.2s ease;
@@ -238,12 +252,16 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   h1 { font-size: 24px; line-height: 1.1; margin: 0; }
   header p { font-size: 14px; margin-top: 10px; }
 
-  /* keep toggle on the right and scaled to fit */
   .theme-switch { gap: 8px; }
-  .theme-ico { font-size: 14px; }
+  .theme-ico { font-size: 16px; }
+
   .switch { width: 78px; height: 38px; }
   .slider::before { width: 32px; height: 32px; }
-  .slider::after  { width: 16px; height: 16px; left: 12px; box-shadow: 5px 0 0 0 var(--toggle-knob); }
+  .slider::after  {
+    width: 16px; height: 16px;
+    left: 12px;
+    box-shadow: 5px 0 0 0 var(--toggle-knob);
+  }
   .switch input:checked + .slider::before { transform: translate(38px, -50%); }
   .switch input:checked + .slider::after  { transform: translate(38px, -50%); }
 
