@@ -4,55 +4,77 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>View Note</title>
-    <link rel="stylesheet" href="style.css"/>
+
+    <link rel="stylesheet" href="./style.css"/>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
-<header>
+
+<header style="padding:20px">
     <a href="./" style="color:#8bd5ff;text-decoration:none;">← Back</a>
     <h1 id="title" style="margin-top:10px;">Loading…</h1>
 </header>
 
-<main class="card" style="margin:16px;">
-    <div id="content" class="md"></div>
+<main style="padding:20px">
+    <div id="content"></div>
 </main>
 
 <script>
-    function getParam(name) {
-      const url = new URL(window.location.href);
-      return url.searchParams.get(name);
-    }
+function getParam(name) {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
 
-    function stripFrontmatter(md) {
-      if (md.startsWith("---")) {
-        const parts = md.split("---");
-        if (parts.length >= 3) return parts.slice(2).join("---").trim();
+function stripFrontmatter(md) {
+  if (md.startsWith("---")) {
+    const parts = md.split("---");
+    if (parts.length >= 3) {
+      return parts.slice(2).join("---").trim();
+    }
+  }
+  return md;
+}
+
+const path = getParam("path");
+
+if (!path) {
+  document.getElementById("title").textContent = "Missing path";
+  document.getElementById("content").textContent = "No markdown path provided.";
+}
+else {
+
+  fetch("./" + path)
+    .then(r => {
+      if (!r.ok) {
+        throw new Error("Markdown file not found: " + path);
       }
-      return md;
-    }
+      return r.text();
+    })
 
-    const path = getParam("path");
-    if (!path) {
-      document.getElementById("title").textContent = "Missing path";
-      document.getElementById("content").textContent = "No note path provided.";
-    } else {
-      fetch("../" + path) // because site root is /docs, kb is at repo root (not served). See Step 2.
-        .then(r => {
-          if (!r.ok) throw new Error("Failed to load: " + path);
-          return r.text();
-        })
-        .then(md => {
-          const clean = stripFrontmatter(md);
-          // title: first h1 if present
-          const match = clean.match(/^#\s+(.+)$/m);
-          document.getElementById("title").textContent = match ? match[1].trim() : path;
-          document.getElementById("content").innerHTML = marked.parse(clean);
-        })
-        .catch(err => {
-          document.getElementById("title").textContent = "Error opening note";
-          document.getElementById("content").textContent = err.message;
-        });
-    }
-  </script>
+    .then(md => {
+
+      md = stripFrontmatter(md);
+
+      const titleMatch = md.match(/^#\s+(.+)$/m);
+
+      if (titleMatch) {
+        document.getElementById("title").textContent = titleMatch[1];
+      }
+      else {
+        document.getElementById("title").textContent = path;
+      }
+
+      document.getElementById("content").innerHTML = marked.parse(md);
+    })
+
+    .catch(err => {
+      document.getElementById("title").textContent = "Error loading note";
+      document.getElementById("content").textContent = err.message;
+    });
+}
+</script>
+
 </body>
 </html>
