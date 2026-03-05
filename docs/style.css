@@ -141,8 +141,8 @@ p { margin: 0; color: var(--muted); }
 .slider::before {
   content: "";
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   left: 6px;
   top: 50%;
   transform: translateY(-50%);
@@ -156,8 +156,8 @@ p { margin: 0; color: var(--muted); }
 .slider::after {
   content: "";
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
