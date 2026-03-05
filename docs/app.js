@@ -228,6 +228,18 @@ document.getElementById("nextBtn").addEventListener("click", () => {
   renderResults(currentItems);
 });
 
+document.getElementById("clearMd").addEventListener("click", () => {
+  const box = document.getElementById("add_body");
+
+  if (!box.value.trim()) return;
+
+  const confirmClear = confirm("Clear the markdown text?");
+  if (!confirmClear) return;
+
+  box.value = "";
+  document.getElementById("mdPreview").textContent = "";
+});
+
 setupVoice();
 loadIndex();
 
