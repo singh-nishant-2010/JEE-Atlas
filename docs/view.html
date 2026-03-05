@@ -57,12 +57,15 @@ else {
 
       md = stripFrontmatter(md);
 
-      const titleMatch = md.match(/^#\s+(.+)$/m);
+      // Extract first H1 title
+      const match = md.match(/^#\s+(.+)$/m);
 
-      if (titleMatch) {
-        document.getElementById("title").textContent = titleMatch[1];
-      }
-      else {
+      if (match) {
+        document.getElementById("title").textContent = match[1];
+
+        // Remove the first heading from markdown
+        md = md.replace(/^#\s+(.+)$/m, "").trim();
+      } else {
         document.getElementById("title").textContent = path;
       }
 
