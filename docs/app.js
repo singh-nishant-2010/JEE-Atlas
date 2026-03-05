@@ -1,9 +1,15 @@
+// =====================
+// JEE Atlas - app.js
+// =====================
+
 let KB = [];
 let fuse = null;
+
 const PAGE_SIZE = 10;
 let currentPage = 1;
 let currentItems = []; // filtered results currently being viewed
 
+// ---------------- Index + Search ----------------
 async function loadIndex() {
   const res = await fetch("./kb_index.json");
   KB = await res.json();
@@ -97,8 +103,8 @@ function doSearch() {
       .map(r => r.item);
   }
 
-  currentPage = 1;        // ✅ reset to first page
-  renderResults(items);   // pagination happens inside renderResults
+  currentPage = 1;
+  renderResults(items);
 }
 
 // ---------------- Voice to text (Web Speech API) ----------------
@@ -108,8 +114,11 @@ let finalText = "";
 function setupVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    document.getElementById("mic").disabled = true;
-    document.getElementById("mic").textContent = "🎙 Voice not supported";
+    const mic = document.getElementById("mic");
+    if (mic) {
+      mic.disabled = true;
+      mic.textContent = "🎙 Voice not supported";
+    }
     return;
   }
 
@@ -126,20 +135,25 @@ function setupVoice() {
       else interim += text;
     }
     const box = document.getElementById("add_body");
+    if (!box) return;
     box.value = (box.value + "\n\n" + (finalText || interim)).trim();
   };
 
   recognition.onend = () => {
-    document.getElementById("mic").disabled = false;
-    document.getElementById("stopMic").disabled = true;
+    const mic = document.getElementById("mic");
+    const stopMicBtn = document.getElementById("stopMic");
+    if (mic) mic.disabled = false;
+    if (stopMicBtn) stopMicBtn.disabled = true;
   };
 }
 
 function startVoice() {
   if (!recognition) return;
   finalText = "";
-  document.getElementById("mic").disabled = true;
-  document.getElementById("stopMic").disabled = false;
+  const mic = document.getElementById("mic");
+  const stopMicBtn = document.getElementById("stopMic");
+  if (mic) mic.disabled = true;
+  if (stopMicBtn) stopMicBtn.disabled = false;
   recognition.start();
 }
 
@@ -197,7 +211,7 @@ function openGithubCommit() {
   const topic = document.getElementById("add_topic").value.trim() || "general";
   const title = document.getElementById("add_title").value.trim() || "untitled";
 
-  // IMPORTANT: since you moved kb under docs permanently (Option B)
+  // kb under docs
   const path = `docs/kb/${slugify(subject)}/${topic.split("/").map(slugify).join("/")}/${slugify(title)}.md`;
 
   const url =
@@ -207,51 +221,13 @@ function openGithubCommit() {
   window.open(url, "_blank");
 }
 
-// Wiring
-document.getElementById("q").addEventListener("input", doSearch);
-document.getElementById("subject").addEventListener("change", doSearch);
-document.getElementById("exam").addEventListener("change", doSearch);
-
-document.getElementById("gen").addEventListener("click", generateMarkdown);
-document.getElementById("openGithub").addEventListener("click", openGithubCommit);
-
-document.getElementById("mic").addEventListener("click", startVoice);
-document.getElementById("stopMic").addEventListener("click", stopVoice);
-
-document.getElementById("prevBtn").addEventListener("click", () => {
-  currentPage -= 1;
-  renderResults(currentItems);
-});
-
-document.getElementById("nextBtn").addEventListener("click", () => {
-  currentPage += 1;
-  renderResults(currentItems);
-});
-
-document.getElementById("clearMd").addEventListener("click", () => {
-  const box = document.getElementById("add_body");
-
-  if (!box.value.trim()) return;
-
-  const confirmClear = confirm("Clear the markdown text?");
-  if (!confirmClear) return;
-
-  box.value = "";
-  document.getElementById("mdPreview").textContent = "";
-});
-
-setupVoice();
-loadIndex();
-
 // ---------------- Theme Toggle (slider) ----------------
-const themeToggle = document.getElementById("themeToggle");
-
 function setTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
 
-  // keep slider state in sync
-  themeToggle.checked = (theme === "dark");
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) themeToggle.checked = (theme === "dark");
 }
 
 function initTheme() {
@@ -262,61 +238,180 @@ function initTheme() {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setTheme(prefersDark ? "dark" : "light");
   }
+
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("change", () => {
+      setTheme(themeToggle.checked ? "dark" : "light");
+    });
+  }
 }
 
-themeToggle.addEventListener("change", () => {
-  setTheme(themeToggle.checked ? "dark" : "light");
-});
-
-initTheme();
-
-
-// -------- AI menu (premium UI) --------
-const askBtn = document.getElementById("askAiBtn");
-const aiMenu = document.getElementById("aiMenu");
-
-const AI_LINKS = {
-  chatgpt: "https://chat.openai.com/",
-  claude: "https://claude.ai/",
-  gemini: "https://gemini.google.com/",
-  copilot: "https://copilot.microsoft.com/",
-  perplexity: "https://www.perplexity.ai/"
-};
-
-function openAiProvider(provider) {
-  const prompt = buildPrompt();
-  const url = AI_LINKS[provider] || AI_LINKS.chatgpt;
-
-  // Copy prompt to clipboard (reliable across providers)
-  navigator.clipboard?.writeText(prompt).catch(() => {});
-
-  window.open(url, "_blank");
-  alert("Prompt copied to clipboard. Paste it in the opened AI chat.");
+// ---------------- AI prompt (Subject-aware) ----------------
+function getSelectedSubject() {
+  const sel = document.getElementById("subject");
+  return sel ? (sel.value || "").trim() : "";
 }
 
-function toggleAiMenu(forceOpen = null) {
-  const open = forceOpen ?? !aiMenu.classList.contains("open");
-  aiMenu.classList.toggle("open", open);
-  askBtn.setAttribute("aria-expanded", open ? "true" : "false");
+function basePromptForSubject(subject) {
+  const common =
+    "Explain clearly, step-by-step. Include key formulas/rules, common mistakes, shortcuts, and 2-3 quick practice questions with answers.";
+
+  switch (subject) {
+    case "Physics":
+      return `You are an expert IIT JEE (Main + Advanced) Physics tutor. Focus on concepts, derivations, free-body diagrams, units/dimensions, graphs, and common JEE traps. ${common}`;
+    case "Chemistry":
+      return `You are an expert IIT JEE (Main + Advanced) Chemistry tutor (Physical, Organic, Inorganic). Use mechanisms where needed, key trends, exceptions, and memory hacks. ${common}`;
+    case "Maths":
+      return `You are an expert IIT JEE (Main + Advanced) Mathematics tutor. Emphasize method selection, speed tricks, standard results, and clean step-by-step solutions. ${common}`;
+    case "English":
+      return `You are an expert Class 11-12 English teacher. Focus on grammar rules, writing formats, comprehension strategy, and examples. ${common}`;
+    case "Computer Science":
+      return `You are an expert Class 11-12 Computer Science teacher (Python + fundamentals). Provide clear explanations, code examples, common errors, and short practice problems. ${common}`;
+    default:
+      return `You are an expert teacher for IIT JEE (Main + Advanced) Physics, Chemistry, Maths and Class 11-12 English & Computer Science. ${common}`;
+  }
 }
 
-askBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleAiMenu();
-});
+function buildPrompt() {
+  const q = (document.getElementById("q")?.value || "").trim();
+  const subject = getSelectedSubject();
+  const base = basePromptForSubject(subject);
+  const userPart = q ? q : "(Type your doubt/question here)";
+  return `${base}\n\nUser question/topic:\n${userPart}`;
+}
 
-aiMenu.addEventListener("click", (e) => {
-  const btn = e.target.closest(".ai-item");
-  if (!btn) return;
-  const provider = btn.getAttribute("data-ai");
-  toggleAiMenu(false);
-  openAiProvider(provider);
-});
+// ---------------- AI menu (FIXED: bind after DOM ready + open immediately) ----------------
+function initAiMenu() {
+  const askBtn = document.getElementById("askAiBtn");
+  const aiMenu = document.getElementById("aiMenu");
+  if (!askBtn || !aiMenu) return;
 
-// close menu on outside click
-document.addEventListener("click", () => toggleAiMenu(false));
+  const AI_LINKS = {
+    chatgpt: "https://chat.openai.com/",
+    claude: "https://claude.ai/",
+    gemini: "https://gemini.google.com/",
+    copilot: "https://copilot.microsoft.com/",
+    // Perplexity supports prefill query
+    perplexity: (prompt) => `https://www.perplexity.ai/?q=${encodeURIComponent(prompt)}`
+  };
 
-// close menu on ESC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") toggleAiMenu(false);
+  function toggleAiMenu(forceOpen = null) {
+    const open = forceOpen ?? !aiMenu.classList.contains("open");
+    aiMenu.classList.toggle("open", open);
+    askBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function toast(msg) {
+    let t = document.getElementById("toast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "toast";
+      t.style.position = "fixed";
+      t.style.left = "50%";
+      t.style.bottom = "18px";
+      t.style.transform = "translateX(-50%)";
+      t.style.padding = "10px 12px";
+      t.style.borderRadius = "999px";
+      t.style.border = "1px solid var(--border)";
+      t.style.background = "var(--card)";
+      t.style.color = "var(--text)";
+      t.style.boxShadow = "0 10px 30px rgba(0,0,0,0.25)";
+      t.style.zIndex = "9999";
+      t.style.fontWeight = "600";
+      t.style.opacity = "0";
+      t.style.transition = "opacity 0.2s ease";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = "1";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => (t.style.opacity = "0"), 1800);
+  }
+
+  async function openAiProvider(provider) {
+    const prompt = buildPrompt();
+
+    // copy prompt
+    try {
+      await navigator.clipboard.writeText(prompt);
+      toast("Prompt copied — paste in the opened AI chat");
+    } catch {
+      toast("Open AI — copy/paste prompt manually");
+    }
+
+    // open tab
+    let url = AI_LINKS[provider] || AI_LINKS.chatgpt;
+    if (typeof url === "function") url = url(prompt);
+
+    window.open(url, "_blank");
+  }
+
+  askBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleAiMenu();
+  });
+
+  aiMenu.addEventListener("click", (e) => {
+    const btn = e.target.closest(".ai-item");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const provider = btn.getAttribute("data-ai");
+    toggleAiMenu(false);
+    openAiProvider(provider);
+  });
+
+  document.addEventListener("click", () => toggleAiMenu(false));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") toggleAiMenu(false);
+  });
+}
+
+// ---------------- Wire everything safely after DOM is ready ----------------
+window.addEventListener("DOMContentLoaded", () => {
+  // Wiring search
+  document.getElementById("q")?.addEventListener("input", doSearch);
+  document.getElementById("subject")?.addEventListener("change", doSearch);
+  document.getElementById("exam")?.addEventListener("change", doSearch);
+
+  // Pager
+  document.getElementById("prevBtn")?.addEventListener("click", () => {
+    currentPage -= 1;
+    renderResults(currentItems);
+  });
+
+  document.getElementById("nextBtn")?.addEventListener("click", () => {
+    currentPage += 1;
+    renderResults(currentItems);
+  });
+
+  // Add content
+  document.getElementById("gen")?.addEventListener("click", generateMarkdown);
+  document.getElementById("openGithub")?.addEventListener("click", openGithubCommit);
+
+  // Clear markdown
+  document.getElementById("clearMd")?.addEventListener("click", () => {
+    const box = document.getElementById("add_body");
+    if (!box || !box.value.trim()) return;
+
+    const confirmClear = confirm("Clear the markdown text?");
+    if (!confirmClear) return;
+
+    box.value = "";
+    const prev = document.getElementById("mdPreview");
+    if (prev) prev.textContent = "";
+  });
+
+  // Voice
+  document.getElementById("mic")?.addEventListener("click", startVoice);
+  document.getElementById("stopMic")?.addEventListener("click", stopVoice);
+
+  setupVoice();
+  initTheme();
+  initAiMenu();
+  loadIndex();
 });
