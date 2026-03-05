@@ -1,13 +1,90 @@
 [
   {
-    "title": "Newton's Three Laws of Motion:",
+    "title": "Chemical Bonding",
+    "subject": "Chemistry",
+    "exam": "",
+    "topic": "Physical",
+    "tags": "",
+    "text": "Chemical Bonding Types of Bonds - Ionic - Covalent - Coordinate VSEPR Theory Predicts shape of molecules. Examples: CH4 → tetrahedral NH3 → trigonal pyramidal H2O → bent Hybridization sp → linear sp² → trigonal planar sp³ → tetrahedral",
+    "filename": "chemical-bonding.md",
+    "path": "kb/chemistry/physical/chemical-bonding.md",
+    "url": "./view.html?path=kb/chemistry/physical/chemical-bonding.md"
+  },
+  {
+    "title": "Chemical Equilibrium",
+    "subject": "Chemistry",
+    "exam": "",
+    "topic": "Physical",
+    "tags": "",
+    "text": "Chemical Equilibrium Law of Mass Action For reaction: aA + bB ⇌ cC + dD K = [C]^c[D]^d / [A]^a[B]^b Types of Equilibrium 1. Homogeneous 2. Heterogeneous Le Chatelier Principle System shifts to counteract external change. Factors: - Concentration - Temperature - Pressure Equilibrium Constant Kc → concentration Kp → pressure Relation: Kp = Kc(RT)^(Δn)",
+    "filename": "chemical-equilibrium.md",
+    "path": "kb/chemistry/physical/chemical-equilibrium.md",
+    "url": "./view.html?path=kb/chemistry/physical/chemical-equilibrium.md"
+  },
+  {
+    "title": "Python Basics",
+    "subject": "Computer Science",
+    "exam": "",
+    "topic": "Python",
+    "tags": "",
+    "text": "Python Basics Variables x = 10 name = \"Alice\" Data Types - int - float - string - list - dictionary Conditional Statements if x > 0: print(\"Positive\") Loops for i in range(5): print(i)",
+    "filename": "python-basics.md",
+    "path": "kb/computer_science/python/python-basics.md",
+    "url": "./view.html?path=kb/computer_science/python/python-basics.md"
+  },
+  {
+    "title": "English Tenses",
+    "subject": "English",
+    "exam": "",
+    "topic": "Grammer",
+    "tags": "",
+    "text": "English Tenses Present Tense Simple Present Example: She writes a letter. Past Tense Simple Past She wrote a letter. Future Tense She will write a letter. Important Rules Use present tense for universal truths. Example: The sun rises in the east.",
+    "filename": "tenses.md",
+    "path": "kb/english/grammer/tenses.md",
+    "url": "./view.html?path=kb/english/grammer/tenses.md"
+  },
+  {
+    "title": "Derivatives",
+    "subject": "Maths",
+    "exam": "",
+    "topic": "Calculus",
+    "tags": "",
+    "text": "Derivatives Derivative represents rate of change. dy/dx = lim h→0 (f(x+h) − f(x))/h Standard Derivatives d/dx (xⁿ) = nxⁿ⁻¹ d/dx (sin x) = cos x d/dx (cos x) = −sin x d/dx (tan x) = sec²x Product Rule d(uv)/dx = u dv/dx + v du/dx Chain Rule dy/dx = dy/du × du/dx Applications - Slope of tangent - Maxima & minima - Velocity & acceleration -",
+    "filename": "derivatives.md",
+    "path": "kb/maths/calculus/derivatives.md",
+    "url": "./view.html?path=kb/maths/calculus/derivatives.md"
+  },
+  {
+    "title": "Limits",
+    "subject": "Maths",
+    "exam": "",
+    "topic": "Calculus",
+    "tags": "",
+    "text": "Limits Definition Limit describes behavior of a function as input approaches a value. lim x→a f(x) Standard Limits lim x→0 (sin x / x) = 1 lim x→0 (1 − cos x)/x² = ½ lim x→0 (e^x −1)/x = 1 Important Techniques 1. Factorization 2. Rationalization 3. Standard limits 4. L'Hospital rule L'Hospital Rule If limit gives 0/0 or ∞/∞: lim f/g = lim f'/g'",
+    "filename": "limits.md",
+    "path": "kb/maths/calculus/limits.md",
+    "url": "./view.html?path=kb/maths/calculus/limits.md"
+  },
+  {
+    "title": "Newton's Laws of Motion",
     "subject": "Physics",
     "exam": "",
     "topic": "Mechanics",
     "tags": "",
-    "text": "Newton's Three Laws of Motion: - First Law (Inertia): An object at rest stays at rest, and an object in motion stays in motion with the same speed and in a straight line unless acted upon by an unbalanced force. - Second Law: The net force on an object is equal to its mass multiplied by its acceleration. The acceleration of an object depends directly on the net force applied and inversely on the object's mass. - Third Law (Action-Reaction): For every action, there is an equal and opposite reaction. If two bodies interact, they apply forces to each other that are equal in magnitude and opposite in direction.",
-    "filename": "newton-laws.md",
-    "path": "kb/physics/mechanics/newton-laws.md",
-    "url": "./view.html?path=kb/physics/mechanics/newton-laws.md"
+    "text": "Newton's Laws of Motion First Law (Law of Inertia) An object remains at rest or continues to move with constant velocity unless acted upon by a net external force. Types of inertia: - Inertia of rest - Inertia of motion - Inertia of direction Second Law Force equals rate of change of momentum. F = dp/dt For constant mass: F = ma Third Law For every action there is an equal and opposite reaction. Important properties: - Forces act on different bodies - They are equal in magnitude - They act simultaneously Free Body Diagram (FBD) Steps: 1. Isolate object 2. Draw all forces acting 3. Resolve forces 4. Apply Newton's second law Important JEE Concepts Pseudo force in non-inertial frame: F = ma − ma₀ where a₀ = acceleration of frame. Typical JEE Problems - Block on inclined plane - Connected pulley systems - Elevator problems",
+    "filename": "laws-of-motion.md",
+    "path": "kb/physics/mechanics/laws-of-motion.md",
+    "url": "./view.html?path=kb/physics/mechanics/laws-of-motion.md"
+  },
+  {
+    "title": "Work Energy Power",
+    "subject": "Physics",
+    "exam": "",
+    "topic": "Mechanics",
+    "tags": "",
+    "text": "Work Energy Power Work W = F·s·cosθ Unit: Joule Kinetic Energy K = ½mv² Work Energy Theorem Work done by net force equals change in kinetic energy. W = ΔK Potential Energy Gravitational: U = mgh Elastic: U = ½kx² Power P = dW/dt Average Power: P = W/t Instantaneous Power: P = F·v Conservative Forces - Work independent of path - Potential energy defined Examples: - Gravitational - Spring force Mechanical Energy E = K + U Conserved if only conservative forces act.",
+    "filename": "work-energy-power.md",
+    "path": "kb/physics/mechanics/work-energy-power.md",
+    "url": "./view.html?path=kb/physics/mechanics/work-energy-power.md"
   }
 ]
