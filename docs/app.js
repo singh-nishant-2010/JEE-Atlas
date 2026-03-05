@@ -22,7 +22,7 @@ function renderResults(items) {
   }
   el.innerHTML = items.map(x => `
     <div class="result">
-      <a href="${x.url}"><b>${escapeHtml(x.title)}</b></a>
+      <a href="./view.html?path=${encodeURIComponent(x.path_in_pages)}"><b>${escapeHtml(x.title)}</b></a>
       <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
       <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
     </div>

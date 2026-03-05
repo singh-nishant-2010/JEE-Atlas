@@ -3,7 +3,7 @@ import re
 import os
 from pathlib import Path
 
-KB_DIR = Path("kb")
+KB_DIR = Path("docs/kb")
 OUT = Path("docs/kb_index.json")
 
 def read_title(md: str) -> str:
@@ -20,19 +20,22 @@ def strip_frontmatter(md: str) -> str:
     return md
 
 def guess_subject(p: Path) -> str:
-    if len(p.parts) >= 2:
-        s = p.parts[1]
+    # docs/kb/<subject>/...
+    parts = p.parts
+    if len(parts) >= 3:
+        s = parts[2]
         return {
             "physics": "Physics",
             "chemistry": "Chemistry",
             "maths": "Maths",
             "english": "English",
             "computer_science": "Computer Science",
-        }.get(s, s.title())
+        }.get(s, s.replace("_", " ").title())
     return "Unknown"
 
 def topic_path(p: Path) -> str:
-    parts = list(p.parts[2:-1])
+    # docs/kb/<subject>/<topic...>/<file>.md
+    parts = list(p.parts[3:-1])
     return "/".join([x.replace("_", " ").title() for x in parts]) or "General"
 
 def extract_text(md: str) -> str:
@@ -61,7 +64,8 @@ def main():
 
     items = []
     for f in md_files:
-        md = f.read_text(encoding="utf-8", errors="ignore")
+        rel_path = f.as_posix().replace("docs/", "", 1)  # docs/kb/... -> kb/...
+        
         items.append({
             "title": read_title(strip_frontmatter(md)),
             "subject": guess_subject(f),
@@ -70,8 +74,8 @@ def main():
             "tags": "",
             "text": extract_text(md),
             "filename": f.name,
-            "path": f.as_posix(),
-            "url": f.as_posix(),  # keep simple for now
+            "path": rel_path,              # kb/physics/.../newton-laws.md
+            "url": f"./view.html?path={rel_path}",  # viewer link
         })
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
