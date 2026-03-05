@@ -1,0 +1,13 @@
+[
+  {
+    "title": "Newton's Three Laws of Motion:",
+    "subject": "Physics",
+    "exam": "",
+    "topic": "Mechanics",
+    "tags": "",
+    "text": "Newton's Three Laws of Motion: - First Law (Inertia): An object at rest stays at rest, and an object in motion stays in motion with the same speed and in a straight line unless acted upon by an unbalanced force. - Second Law: The net force on an object is equal to its mass multiplied by its acceleration. The acceleration of an object depends directly on the net force applied and inversely on the object's mass. - Third Law (Action-Reaction): For every action, there is an equal and opposite reaction. If two bodies interact, they apply forces to each other that are equal in magnitude and opposite in direction.",
+    "filename": "newton-laws.md",
+    "path": "kb/physics/mechanics/newton-laws.md",
+    "url": "kb/physics/mechanics/newton-laws.md"
+  }
+]
