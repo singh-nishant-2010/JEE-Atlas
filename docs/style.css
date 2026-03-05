@@ -141,38 +141,39 @@ p { margin: 0; color: var(--muted); }
 .slider::before {
   content: "";
   position: absolute;
-  width: 24px;
-  height: 24px;
-  left: 6px;
+  width: 20px;
+  height: 20px;
+  left: 8px;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
   background: var(--toggle-knob);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.20);
   transition: 0.2s ease;
 }
 
-/* Crescent icon inside knob (minimal, classy) */
+/* Crescent icon inside knob */
 .slider::after {
   content: "";
   position: absolute;
-  width: 10px;
-  height: 10px;
-  left: 15px;
+  width: 8px;
+  height: 8px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
   background: var(--toggle-icon);
-  box-shadow: 5px 0 0 0 var(--toggle-knob);
+  box-shadow: 4px 0 0 0 var(--toggle-knob);
   transition: 0.2s ease;
 }
 
 /* Checked state: move knob to right */
 .switch input:checked + .slider::before {
-  transform: translate(50px, -50%);
+  transform: translate(56px, -50%);
 }
+
 .switch input:checked + .slider::after {
-  transform: translate(50px, -50%);
+  transform: translate(56px, -50%);
 }
 
 /* Focus ring */
