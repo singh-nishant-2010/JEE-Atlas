@@ -79,28 +79,72 @@ p { margin: 0; color: var(--muted); }
   min-width: 0;
 }
 
-.ai-launch{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  margin-left: 12px;
+/* ---------- AI menu ---------- */
+.ai{
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
   flex: 0 0 auto;
 }
 
-.ask-ai{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-weight:600;
+.ai-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.ai-ico{ font-size:16px; line-height:1; }
+.ai-btn:hover{ filter: brightness(0.98); }
 
-/* Mobile: keep it compact */
+.ai-caret{ opacity: 0.7; font-size: 12px; }
+
+.ai-menu{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 160px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+
+  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+
+  display: none;
+  z-index: 50;
+}
+
+.ai-menu.open{ display: block; }
+
+.ai-item{
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ai-item:hover{
+  background: var(--input);
+  border: 1px solid var(--border);
+}
+
+/* Mobile: keep compact */
 @media (max-width: 900px){
-  .ai-launch{ gap:8px; }
-  #aiProvider{ max-width: 140px; }
-  .ask-ai{ padding: 10px 10px; }
+  .ai-btn{ padding: 9px 11px; }
+  .ai-menu{ min-width: 150px; }
 }
 
 /* ---------- Theme toggle ---------- */
