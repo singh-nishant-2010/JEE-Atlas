@@ -22,3 +22,5 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .snippet { color: #cfe1f2; font-size: 13px; margin-top: 6px; }
 .preview { white-space: pre-wrap; background: #0b1118; padding: 10px; border-radius: 10px; border: 1px solid #223246; }
 .muted { color: #a9b6c7; }
+.pager { display:flex; gap:10px; align-items:center; margin-top:12px; }
+.pager button { width:auto; }

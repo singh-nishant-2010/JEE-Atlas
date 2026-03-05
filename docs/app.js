@@ -1,5 +1,8 @@
 let KB = [];
 let fuse = null;
+const PAGE_SIZE = 10;
+let currentPage = 1;
+let currentItems = []; // filtered results currently being viewed
 
 async function loadIndex() {
   const res = await fetch("./kb_index.json");
@@ -11,28 +14,50 @@ async function loadIndex() {
     keys: ["title", "subject", "exam", "topic", "tags", "text", "filename", "path", "slug"]
   });
 
-  renderResults(KB.slice(0, 30));
+  currentPage = 1;
+  renderResults(KB);
 }
 
 function renderResults(items) {
+  currentItems = items || [];
+  const total = currentItems.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // clamp page
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = currentItems.slice(start, start + PAGE_SIZE);
+
   const el = document.getElementById("results");
-  if (!items.length) {
+  if (!pageItems.length) {
     el.innerHTML = `<p class="muted">No results.</p>`;
-    return;
+  } else {
+    el.innerHTML = pageItems.map(x => {
+      const p = x.path || x.path_in_pages || "";
+      const href = x.url || (p ? `./view.html?path=${encodeURIComponent(p)}` : "#");
+      return `
+        <div class="result">
+          <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+          <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
+          <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
+        </div>
+      `;
+    }).join("");
   }
 
-  el.innerHTML = items.map(x => {
-    const p = x.path || x.path_in_pages || "";  // supports old/new indexes
-    const href = x.url || (p ? `./view.html?path=${encodeURIComponent(p)}` : "./view.html?path=");
+  // pager UI
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const pageInfo = document.getElementById("pageInfo");
 
-    return `
-      <div class="result">
-        <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
-        <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
-        <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
-      </div>
-    `;
-  }).join("");
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+
+  pageInfo.textContent = total
+    ? `Page ${currentPage} / ${totalPages} • ${total} results`
+    : `Page 1 / 1 • 0 results`;
 }
 
 function escapeHtml(s) {
@@ -51,9 +76,10 @@ function doSearch() {
   const exam = document.getElementById("exam").value;
 
   let base = KB;
+
   if (subject) base = base.filter(x => x.subject === subject);
 
-  // Exam filter is forgiving: notes without exam metadata are still allowed
+  // forgiving exam filter
   if (exam) {
     base = base.filter(x => {
       if (!x.exam) return true;
@@ -62,17 +88,17 @@ function doSearch() {
     });
   }
 
+  let items;
   if (!q) {
-    renderResults(base.slice(0, 30));
-    return;
+    items = base;
+  } else {
+    items = new Fuse(base, fuse.options)
+      .search(q)
+      .map(r => r.item);
   }
 
-  const out = new Fuse(base, fuse.options)
-    .search(q)
-    .slice(0, 50)
-    .map(r => r.item);
-
-  renderResults(out);
+  currentPage = 1;        // ✅ reset to first page
+  renderResults(items);   // pagination happens inside renderResults
 }
 
 // ---------------- Voice to text (Web Speech API) ----------------
@@ -191,6 +217,16 @@ document.getElementById("openGithub").addEventListener("click", openGithubCommit
 
 document.getElementById("mic").addEventListener("click", startVoice);
 document.getElementById("stopMic").addEventListener("click", stopVoice);
+
+document.getElementById("prevBtn").addEventListener("click", () => {
+  currentPage -= 1;
+  renderResults(currentItems);
+});
+
+document.getElementById("nextBtn").addEventListener("click", () => {
+  currentPage += 1;
+  renderResults(currentItems);
+});
 
 setupVoice();
 loadIndex();
