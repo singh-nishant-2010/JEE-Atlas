@@ -24,3 +24,52 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .muted { color: #a9b6c7; }
 .pager { display:flex; gap:10px; align-items:center; margin-top:12px; }
 .pager button { width:auto; }
+
+/* ---------- Mobile responsiveness ---------- */
+@media (max-width: 900px) {
+  header { padding: 16px; }
+  h1 { font-size: 30px; line-height: 1.1; }
+  header p { font-size: 15px; }
+
+  .grid {
+    grid-template-columns: 1fr;   /* 1 column on mobile */
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .row {
+    flex-direction: column;       /* stack inputs */
+    gap: 10px;
+  }
+
+  input, select, textarea {
+    font-size: 16px;              /* prevents iOS zoom + better readability */
+    padding: 12px;
+  }
+
+  button {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .result { padding: 12px 0; }
+  .snippet { font-size: 14px; }
+  .meta { font-size: 12px; }
+
+  .pager { flex-wrap: wrap; }
+}
+
+/* Make markdown viewer readable on mobile too */
+#content, .md {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  #content, .md { padding: 0; }
+}
