@@ -8,7 +8,7 @@ async function loadIndex() {
   fuse = new Fuse(KB, {
     includeScore: true,
     threshold: 0.35,
-    keys: ["title","subject","exam","topic","tags","text","filename","path","slug"]
+    keys: ["title", "subject", "exam", "topic", "tags", "text", "filename", "path", "slug"]
   });
 
   renderResults(KB.slice(0, 30));
@@ -20,18 +20,31 @@ function renderResults(items) {
     el.innerHTML = `<p class="muted">No results.</p>`;
     return;
   }
-  el.innerHTML = items.map(x => `
-    <div class="result">
-      <a href="./view.html?path=${encodeURIComponent(x.path_in_pages)}"><b>${escapeHtml(x.title)}</b></a>
-      <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
-      <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
-    </div>
-  `).join("");
+
+  el.innerHTML = items.map(x => {
+    // Bulletproof link:
+    // 1) prefer x.url if present (your index can generate viewer links)
+    // 2) else build viewer link from x.path
+    // 3) else fallback to "#"
+    const href = x.url || (x.path ? `./view.html?path=${encodeURIComponent(x.path)}` : "#");
+
+    return `
+      <div class="result">
+        <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+        <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
+        <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;"
   }[c]));
 }
 
@@ -42,9 +55,11 @@ function doSearch() {
 
   let base = KB;
   if (subject) base = base.filter(x => x.subject === subject);
+
+  // Exam filter is forgiving: notes without exam metadata are still allowed
   if (exam) {
     base = base.filter(x => {
-      if (!x.exam) return true; // <-- allow notes with no exam metadata
+      if (!x.exam) return true;
       if (Array.isArray(x.exam)) return x.exam.includes(exam);
       return x.exam === exam;
     });
@@ -54,7 +69,12 @@ function doSearch() {
     renderResults(base.slice(0, 30));
     return;
   }
-  const out = new Fuse(base, fuse.options).search(q).slice(0, 50).map(r => r.item);
+
+  const out = new Fuse(base, fuse.options)
+    .search(q)
+    .slice(0, 50)
+    .map(r => r.item);
+
   renderResults(out);
 }
 
@@ -154,9 +174,9 @@ function openGithubCommit() {
   const topic = document.getElementById("add_topic").value.trim() || "general";
   const title = document.getElementById("add_title").value.trim() || "untitled";
 
-  const path = `kb/${slugify(subject)}/${topic.split("/").map(slugify).join("/")}/${slugify(title)}.md`;
+  // IMPORTANT: since you moved kb under docs permanently (Option B)
+  const path = `docs/kb/${slugify(subject)}/${topic.split("/").map(slugify).join("/")}/${slugify(title)}.md`;
 
-  // Pre-fill "new file" page content using URL params:
   const url =
     `https://github.com/${OWNER}/${REPO}/new/main/${encodeURIComponent(path)}`
     + `?value=${encodeURIComponent(generatedMd)}`;
