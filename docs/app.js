@@ -230,3 +230,32 @@ document.getElementById("nextBtn").addEventListener("click", () => {
 
 setupVoice();
 loadIndex();
+
+// ---------------- Theme Toggle ----------------
+
+const themeToggle = document.getElementById("themeToggle");
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+
+  themeToggle.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("theme");
+
+  if (saved) {
+    setTheme(saved);
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setTheme(prefersDark ? "dark" : "light");
+  }
+}
+
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme");
+  setTheme(current === "dark" ? "light" : "dark");
+});
+
+initTheme();
