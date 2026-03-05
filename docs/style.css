@@ -115,8 +115,8 @@ p { margin: 0; color: var(--muted); }
 .switch {
   position: relative;
   display: inline-block;
-  width: 92px;
-  height: 44px;
+  width: 72px;
+  height: 34px;
 }
 
 /* Hide checkbox */
