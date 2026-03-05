@@ -22,11 +22,8 @@ function renderResults(items) {
   }
 
   el.innerHTML = items.map(x => {
-    // Bulletproof link:
-    // 1) prefer x.url if present (your index can generate viewer links)
-    // 2) else build viewer link from x.path
-    // 3) else fallback to "#"
-    const href = x.url || (x.path ? `./view.html?path=${encodeURIComponent(x.path)}` : "#");
+    const p = x.path || x.path_in_pages || "";  // supports old/new indexes
+    const href = x.url || (p ? `./view.html?path=${encodeURIComponent(p)}` : "./view.html?path=");
 
     return `
       <div class="result">
