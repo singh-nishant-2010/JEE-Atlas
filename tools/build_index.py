@@ -1,6 +1,5 @@
 import json
 import re
-import os
 from pathlib import Path
 
 KB_DIR = Path("docs/kb")
@@ -13,10 +12,14 @@ def read_title(md: str) -> str:
     return "Untitled"
 
 def strip_frontmatter(md: str) -> str:
+    # YAML frontmatter:
+    # ---
+    # ...
+    # ---
     if md.startswith("---"):
         parts = md.split("---", 2)
         if len(parts) == 3:
-            return parts[2]
+            return parts[2].lstrip()
     return md
 
 def guess_subject(p: Path) -> str:
@@ -40,47 +43,49 @@ def topic_path(p: Path) -> str:
 
 def extract_text(md: str) -> str:
     md = strip_frontmatter(md)
+
+    # remove fenced code blocks
     md = re.sub(r"```.*?```", "", md, flags=re.S)
+
+    # remove inline code
     md = re.sub(r"`[^`]*`", "", md)
-    md = re.sub(r"#+\s+", "", md)
+
+    # strip headings markers
+    md = re.sub(r"^#+\s+", "", md, flags=re.M)
+
+    # convert markdown links to just text
     md = re.sub(r"\[(.*?)\]\((.*?)\)", r"\1", md)
+
+    # collapse whitespace
     md = re.sub(r"\s+", " ", md).strip()
+
     return md[:2000]
 
-def main():
-    print("=== DEBUG START ===")
-    print("CWD:", os.getcwd())
-    print("Repo root listing:", [p.name for p in Path(".").iterdir()])
-    print("KB_DIR exists?", KB_DIR.exists(), "is_dir?", KB_DIR.is_dir())
-    if KB_DIR.exists():
-        # show first few levels
-        sample = list(KB_DIR.rglob("*"))[:25]
-        print("KB sample entries (first 25):", [s.as_posix() for s in sample])
-
-    md_files = list(KB_DIR.rglob("*.md"))
-    print("Found .md files:", len(md_files))
-    print("First 10 md files:", [f.as_posix() for f in md_files[:10]])
-    print("=== DEBUG END ===")
+def main() -> None:
+    md_files = sorted(KB_DIR.rglob("*.md"))
 
     items = []
     for f in md_files:
-        rel_path = f.as_posix().replace("docs/", "", 1)  # docs/kb/... -> kb/...
-        
+        md = f.read_text(encoding="utf-8", errors="ignore")
+
+        # Make path relative to docs/ so it works on GitHub Pages:
+        # docs/kb/... -> kb/...
+        rel_path = f.as_posix().replace("docs/", "", 1)
+
         items.append({
             "title": read_title(strip_frontmatter(md)),
             "subject": guess_subject(f),
-            "exam": "",
+            "exam": "",  # later you can parse from frontmatter if you want
             "topic": topic_path(f),
-            "tags": "",
+            "tags": "",  # later you can parse from frontmatter if you want
             "text": extract_text(md),
             "filename": f.name,
-            "path": rel_path,              # kb/physics/.../newton-laws.md
-            "url": f"./view.html?path={rel_path}",  # viewer link
+            "path": rel_path,                        # kb/physics/.../newton-laws.md
+            "url": f"./view.html?path={rel_path}",   # clickable viewer link
         })
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Wrote {OUT} with {len(items)} items")
 
 if __name__ == "__main__":
     main()
