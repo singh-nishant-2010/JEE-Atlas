@@ -12,30 +12,32 @@
     <div class="header-top">
         <h1>JEE Knowledge Base</h1>
 
-        <div class="theme-switch">
-            <span class="theme-ico sun" aria-hidden="true">☀</span>
+        <div class="header-controls">
+            <!-- theme switch -->
+            <div class="theme-switch">
+                <span class="theme-ico sun" aria-hidden="true">☀</span>
+                <label class="switch" title="Toggle theme">
+                    <input id="themeToggle" type="checkbox" aria-label="Toggle dark mode" />
+                    <span class="slider"></span>
+                </label>
+                <span class="theme-ico moon" aria-hidden="true">☾</span>
+            </div>
 
-            <label class="switch" title="Toggle theme">
-                <input id="themeToggle" type="checkbox" aria-label="Toggle dark mode" />
-                <span class="slider"></span>
-            </label>
+            <!-- Ask AI button + menu -->
+            <div class="ai">
+                <button id="askAiBtn" class="ai-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+                    <span class="ai-spark" aria-hidden="true">✨</span>
+                    <span>Ask AI</span>
+                    <span class="ai-caret" aria-hidden="true">▾</span>
+                </button>
 
-            <span class="theme-ico moon" aria-hidden="true">☾</span>
-        </div>
-
-        <div class="ai">
-            <button id="askAiBtn" class="ai-btn" type="button" aria-haspopup="menu" aria-expanded="false">
-                <span class="ai-spark" aria-hidden="true">✨</span>
-                <span>Ask AI</span>
-                <span class="ai-caret" aria-hidden="true">▾</span>
-            </button>
-
-            <div id="aiMenu" class="ai-menu" role="menu" aria-label="AI providers">
-                <button type="button" class="ai-item" role="menuitem" data-ai="chatgpt">ChatGPT</button>
-                <button type="button" class="ai-item" role="menuitem" data-ai="claude">Claude</button>
-                <button type="button" class="ai-item" role="menuitem" data-ai="gemini">Gemini</button>
-                <button type="button" class="ai-item" role="menuitem" data-ai="copilot">Copilot</button>
-                <button type="button" class="ai-item" role="menuitem" data-ai="perplexity">Perplexity</button>
+                <div id="aiMenu" class="ai-menu" role="menu" aria-label="AI providers">
+                    <button type="button" class="ai-item" role="menuitem" data-ai="chatgpt">ChatGPT</button>
+                    <button type="button" class="ai-item" role="menuitem" data-ai="claude">Claude</button>
+                    <button type="button" class="ai-item" role="menuitem" data-ai="gemini">Gemini</button>
+                    <button type="button" class="ai-item" role="menuitem" data-ai="copilot">Copilot</button>
+                    <button type="button" class="ai-item" role="menuitem" data-ai="perplexity">Perplexity</button>
+                </div>
             </div>
         </div>
     </div>

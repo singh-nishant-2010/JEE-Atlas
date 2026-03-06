@@ -321,6 +321,34 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---------- Mobile responsiveness ---------- */
 @media (max-width: 900px) {
+.header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  /* Controls row: push to the right, keep in one line */
+.header-controls {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* Keep title readable (avoid weird breaks) */
+.header-top h1 {
+  width: 100%;
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.05;
+  word-break: normal;
+}
+
+/* Slightly shrink controls so they fit */
+.theme-switch { gap: 8px; }
+.ai-btn { padding: 9px 11px; }
+
   header { padding: 16px; }
   h1 { font-size: 24px; line-height: 1.1; margin: 0; }
   header p { font-size: 14px; margin-top: 10px; }
