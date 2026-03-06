@@ -381,3 +381,23 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Markdown viewer */
 #content, .md { max-width: 900px; margin: 0 auto; }
 @media (max-width: 900px) { #content, .md { padding: 0; } }
+
+.result-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.delete-note{
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  border-radius:8px;
+  cursor:pointer;
+  padding:4px 8px;
+}
+
+.delete-note:hover{
+  background:var(--input);
+}

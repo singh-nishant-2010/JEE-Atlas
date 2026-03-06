@@ -66,6 +66,28 @@ function renderResults(items) {
     : `Page 1 / 1 • 0 results`;
 }
 
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".delete-note");
+  if (!btn) return;
+
+  const filePath = btn.getAttribute("data-path");
+  if (!filePath) return;
+
+  const confirmDelete = confirm(
+    `Delete this note from the repository?\n\n${filePath}`
+  );
+
+  if (!confirmDelete) return;
+
+  const OWNER = "singh-nishant-2010";
+  const REPO = "JEE-Atlas";
+
+  const githubDeleteURL =
+    `https://github.com/${OWNER}/${REPO}/delete/main/docs/${filePath}`;
+
+  window.open(githubDeleteURL, "_blank");
+});
+
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, c => ({
     "&": "&amp;",
