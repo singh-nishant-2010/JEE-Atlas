@@ -1,4 +1,5 @@
 name: Build KB index
+
 on:
   push:
     branches: [ "main" ]
@@ -15,8 +16,53 @@ jobs:
     # ✅ prevents second run caused by the workflow's own commit
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check for forbidden words in filenames and content
+        run: |
+          FORBIDDEN_WORDS=(
+            "inappropriate" "insensitive" "offensive" "abuse" "harassment" "hate"
+            "violence" "racism" "sexism" "profanity" "slur" "vulgar" "obscene"
+            "discrimination" "bullying" "threat" "terrorism" "extremism" "illegal"
+            "drugs" "weapon" "pornography" "explicit" "self-harm" "suicide"
+            "misinformation" "fake news" "spam" "irrelevant" "nonsense" "trolling"
+          )
+
+          FAILED=0
+
+          # Get all changed files in this push
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+
+          for FILE in $CHANGED_FILES; do
+            # Skip files that no longer exist
+            [ -f "$FILE" ] || continue
+
+            for WORD in "${FORBIDDEN_WORDS[@]}"; do
+              # 1️⃣ Check filename (case-insensitive)
+              if echo "$FILE" | grep -qi "$WORD"; then
+                echo "❌ FORBIDDEN WORD in filename: '$WORD' found in '$FILE'"
+                FAILED=1
+              fi
+
+              # 2️⃣ Check file content (case-insensitive), report line numbers
+              MATCHES=$(grep -ni "$WORD" "$FILE" 2>/dev/null || true)
+              if [ -n "$MATCHES" ]; then
+                echo "❌ FORBIDDEN WORD '$WORD' found in content of '$FILE':"
+                echo "$MATCHES" | head -5   # show first 5 matching lines
+                FAILED=1
+              fi
+            done
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "🚫 Push blocked: one or more forbidden words detected. Please review the files above."
+            exit 1
+          fi
+
+          echo "✅ No forbidden words found."
 
       - uses: actions/setup-python@v5
         with:
