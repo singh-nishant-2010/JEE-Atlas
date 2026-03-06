@@ -37,7 +37,6 @@ function renderResults(items) {
 
   const el = document.getElementById("results");
   const manageMode = document.getElementById("manageMode")?.checked;
-  const isManageMode = manageMode;
 
   if (!pageItems.length) {
     el.innerHTML = `<p class="muted">No results.</p>`;
@@ -554,23 +553,6 @@ window.addEventListener("DOMContentLoaded", () => {
       selected.forEach((path, idx) => {
         setTimeout(() => openGitHubDeletePage(path), idx * 300);
       });
-    });
-
-    let manageMode = false;
-
-    document.getElementById("manageModeBtn")?.addEventListener("click", () => {
-
-      manageMode = !manageMode;
-
-      const btn = document.getElementById("manageModeBtn");
-
-      btn.classList.toggle("active", manageMode);
-
-      btn.textContent = manageMode
-        ? "☑ Manage Notes (ON)"
-        : "☐ Manage Notes";
-
-      renderResults(currentItems);
     });
 
   setupVoice();
