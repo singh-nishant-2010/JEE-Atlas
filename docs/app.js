@@ -45,7 +45,16 @@ function renderResults(items) {
       const href = x.url || (p ? `./view.html?path=${encodeURIComponent(p)}` : "#");
       return `
         <div class="result">
-          <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+          <div class="result-header">
+            <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+
+            <button class="delete-note"
+              data-path="${p}"
+              title="Delete note from repository">
+              🗑
+            </button>
+          </div>
+
           <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
           <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
         </div>
