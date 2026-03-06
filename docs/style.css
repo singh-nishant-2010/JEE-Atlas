@@ -466,3 +466,34 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     align-items: flex-start;
   }
 }
+
+.manage-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.manage-toggle-btn{
+  border:1px solid var(--border);
+  background:var(--button-bg);
+  color:var(--text);
+  padding:8px 14px;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.manage-toggle-btn.active{
+  background:var(--input);
+  border-color:var(--link);
+}
+
+#deleteSelectedBtn{
+  border:1px solid var(--border);
+  background:var(--button-bg);
+  padding:8px 14px;
+  border-radius:10px;
+  font-weight:600;
+}
