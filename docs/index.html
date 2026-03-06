@@ -71,7 +71,6 @@
             </select>
         </div>
 
-        return `
         <div class="result">
             <div class="result-header">
                 <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
@@ -86,7 +85,6 @@
             <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
             <div class="snippet">${escapeHtml((x.text || "").slice(0, 180))}...</div>
         </div>
-        `;
     </section>
 
     <section class="card">
