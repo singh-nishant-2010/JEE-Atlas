@@ -29,7 +29,6 @@ function renderResults(items) {
   const total = currentItems.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // clamp page
   if (currentPage > totalPages) currentPage = totalPages;
   if (currentPage < 1) currentPage = 1;
 
@@ -37,22 +36,32 @@ function renderResults(items) {
   const pageItems = currentItems.slice(start, start + PAGE_SIZE);
 
   const el = document.getElementById("results");
+  const manageMode = document.getElementById("manageMode")?.checked;
+
   if (!pageItems.length) {
     el.innerHTML = `<p class="muted">No results.</p>`;
   } else {
     el.innerHTML = pageItems.map(x => {
       const p = x.path || x.path_in_pages || "";
       const href = x.url || (p ? `./view.html?path=${encodeURIComponent(p)}` : "#");
+
       return `
         <div class="result">
           <div class="result-header">
-            <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+            <div class="result-left">
+              ${manageMode ? `
+                <label class="note-check">
+                  <input type="checkbox" class="noteSelector" data-path="${escapeHtml(p)}" />
+                </label>
+              ` : ""}
+              <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
+            </div>
 
-            <button class="delete-note"
-              data-path="${p}"
-              title="Delete note from repository">
-              🗑
-            </button>
+            ${manageMode ? `
+              <button class="delete-note" data-path="${escapeHtml(p)}" title="Delete this note">
+                🗑
+              </button>
+            ` : ""}
           </div>
 
           <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
@@ -62,7 +71,6 @@ function renderResults(items) {
     }).join("");
   }
 
-  // pager UI
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
   const pageInfo = document.getElementById("pageInfo");
@@ -73,6 +81,34 @@ function renderResults(items) {
   pageInfo.textContent = total
     ? `Page ${currentPage} / ${totalPages} • ${total} results`
     : `Page 1 / 1 • 0 results`;
+
+  updateDeleteSelectedButton();
+}
+
+function getSelectedNotePaths() {
+  return Array.from(document.querySelectorAll(".noteSelector:checked"))
+    .map(cb => cb.getAttribute("data-path"))
+    .filter(Boolean);
+}
+
+function updateDeleteSelectedButton() {
+  const btn = document.getElementById("deleteSelectedBtn");
+  if (!btn) return;
+
+  const selected = getSelectedNotePaths();
+  btn.disabled = selected.length === 0;
+  btn.textContent = selected.length ? `Delete Selected (${selected.length})` : "Delete Selected";
+}
+
+function openGitHubDeletePage(filePath) {
+  const OWNER = "singh-nishant-2010";
+  const REPO = "JEE-Atlas";
+
+  // path in index is kb/... ; repo file is docs/kb/...
+  const repoPath = `docs/${filePath}`;
+  const githubDeleteURL = `https://github.com/${OWNER}/${REPO}/delete/main/${repoPath}`;
+
+  window.open(githubDeleteURL, "_blank");
 }
 
 document.addEventListener("click", (e) => {
@@ -477,6 +513,47 @@ window.addEventListener("DOMContentLoaded", () => {
   // Voice
   document.getElementById("mic")?.addEventListener("click", startVoice);
   document.getElementById("stopMic")?.addEventListener("click", stopVoice);
+
+    // Manage mode toggle
+    document.getElementById("manageMode")?.addEventListener("change", () => {
+      renderResults(currentItems);
+    });
+
+    // Single delete
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".delete-note");
+      if (!btn) return;
+
+      const filePath = btn.getAttribute("data-path");
+      if (!filePath) return;
+
+      const confirmDelete = confirm(`Delete this note from the repository?\n\n${filePath}`);
+      if (!confirmDelete) return;
+
+      openGitHubDeletePage(filePath);
+    });
+
+    // Checkbox updates
+    document.addEventListener("change", (e) => {
+      if (e.target.classList.contains("noteSelector")) {
+        updateDeleteSelectedButton();
+      }
+    });
+
+    // Bulk delete
+    document.getElementById("deleteSelectedBtn")?.addEventListener("click", () => {
+      const selected = getSelectedNotePaths();
+      if (!selected.length) return;
+
+      const confirmDelete = confirm(
+        `Delete ${selected.length} selected note(s)?\n\n` + selected.join("\n")
+      );
+      if (!confirmDelete) return;
+
+      selected.forEach((path, idx) => {
+        setTimeout(() => openGitHubDeletePage(path), idx * 300);
+      });
+    });
 
   setupVoice();
   initTheme();
