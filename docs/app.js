@@ -371,6 +371,43 @@ function initAiMenu() {
   });
 }
 
+//-------- Content Validation ---------------------
+
+function validateContent(content, subject, exam) {
+    // Expanded forbidden words list
+    const forbiddenWords = [
+        "inappropriate", "insensitive", "offensive", "abuse", "harassment", "hate",
+        "violence", "racism", "sexism", "profanity", "slur", "vulgar", "obscene",
+        "discrimination", "bullying", "threat", "terrorism", "extremism", "illegal",
+        "drugs", "weapon", "pornography", "explicit", "self-harm", "suicide",
+        "misinformation", "fake news", "spam", "irrelevant", "nonsense", "trolling"
+    ];
+
+    // Check for forbidden words
+    for (const word of forbiddenWords) {
+        if (content.toLowerCase().includes(word)) {
+            alert(`Your content contains forbidden words: "${word}". Please remove them.`);
+            return false;
+        }
+    }
+
+    // Additional validation for subject and exam
+    const allowedSubjects = ["Physics", "Chemistry", "Maths", "English", "Computer Science"];
+    const allowedExams = ["School", "JEE_Main", "JEE_Advanced"];
+
+    if (!allowedSubjects.includes(subject)) {
+        alert("Invalid subject. Please select a valid subject.");
+        return false;
+    }
+    if (!allowedExams.includes(exam)) {
+        alert("Invalid exam level. Please select a valid exam.");
+        return false;
+    }
+
+    return true;
+}
+
+
 // ---------------- Wire everything safely after DOM is ready ----------------
 window.addEventListener("DOMContentLoaded", () => {
   // Wiring search

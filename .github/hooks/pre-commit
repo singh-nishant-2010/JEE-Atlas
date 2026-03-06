@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Expanded forbidden words list
+FORBIDDEN_WORDS=(
+    "inappropriate" "insensitive" "offensive" "abuse" "harassment" "hate"
+    "violence" "racism" "sexism" "profanity" "slur" "vulgar" "obscene"
+    "discrimination" "bullying" "threat" "terrorism" "extremism" "illegal"
+    "drugs" "weapon" "pornography" "explicit" "self-harm" "suicide"
+    "misinformation" "fake news" "spam" "irrelevant" "nonsense" "trolling"
+)
+
+# Check staged files for forbidden content
+for FILE in $(git diff --cached --name-only); do
+    if [[ $FILE == *.md || $FILE == *.txt || $FILE == *.html || $FILE == *.js ]]; then
+        CONTENT=$(git show ":$FILE")
+        for WORD in "${FORBIDDEN_WORDS[@]}"; do
+            if echo "$CONTENT" | grep -iq "$WORD"; then
+                echo "Error: File '$FILE' contains forbidden content ('$WORD')."
+                exit 1
+            fi
+        done
+    fi
+done
+
+echo "All checks passed. Proceeding with commit."
+exit 0
