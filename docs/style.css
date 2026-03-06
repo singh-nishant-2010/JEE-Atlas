@@ -407,15 +407,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: 0 0 14px 0;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .manage-toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--text);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.manage-toggle input {
+  width: 18px;
+  height: 18px;
 }
 
 .result-header {
