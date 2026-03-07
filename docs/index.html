@@ -51,6 +51,7 @@
 
         <div class="row">
             <input id="q" placeholder="Search topic, formula, concept…" />
+            <div id="searchSuggestions" class="suggestions"></div>
         </div>
 
         <div class="row">
@@ -110,6 +111,7 @@
 
         <div class="row">
             <input id="add_title" placeholder="Title e.g. Newton’s Laws" />
+            <div id="titleSuggestions" class="suggestions"></div>
         </div>
 
         <div class="row">
@@ -118,6 +120,7 @@
         </div>
 
         <textarea id="add_body" rows="12" placeholder="Write your note in Markdown…"></textarea>
+        <div id="bodySuggestions" class="suggestions"></div>
 
         <div class="row">
             <button id="gen">Generate Markdown</button>

@@ -7,7 +7,182 @@ let fuse = null;
 
 const PAGE_SIZE = 10;
 let currentPage = 1;
-let currentItems = []; // filtered results currently being viewed
+let currentItems = [];
+
+let suggestionFuse = null;
+
+// ---------------- Suggestion Index ----------------
+function buildSuggestionIndex() {
+  const pool = [];
+
+  KB.forEach(item => {
+    if (item.title) {
+      pool.push({
+        kind: "title",
+        value: item.title,
+        meta: `${item.subject || ""} • ${item.topic || ""}`.trim(),
+        path: item.path || ""
+      });
+    }
+
+    if (item.topic) {
+      pool.push({
+        kind: "topic",
+        value: item.topic,
+        meta: item.subject || "",
+        path: item.path || ""
+      });
+    }
+
+    if (item.filename) {
+      pool.push({
+        kind: "file",
+        value: item.filename.replace(/\.md$/i, ""),
+        meta: item.subject || "",
+        path: item.path || ""
+      });
+    }
+
+    if (item.slug) {
+      pool.push({
+        kind: "slug",
+        value: item.slug,
+        meta: item.subject || "",
+        path: item.path || ""
+      });
+    }
+  });
+
+  suggestionFuse = new Fuse(pool, {
+    includeScore: true,
+    threshold: 0.3,
+    keys: ["value", "meta"]
+  });
+}
+
+function uniqueSuggestions(results, limit = 5) {
+  const seen = new Set();
+  const out = [];
+
+  for (const r of results) {
+    const key = `${r.item.kind}::${r.item.value}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(r.item);
+    if (out.length >= limit) break;
+  }
+
+  return out;
+}
+
+function getSuggestions(query, limit = 5) {
+  if (!query || !suggestionFuse) return [];
+  const results = suggestionFuse.search(query);
+  return uniqueSuggestions(results, limit);
+}
+
+function renderSuggestionBox(boxId, suggestions, handlerName) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+
+  if (!suggestions.length) {
+    closeSuggestionBox(boxId);
+    return;
+  }
+
+  box.innerHTML = suggestions.map((s, idx) => `
+    <div class="suggestion-item" data-box="${boxId}" data-idx="${idx}">
+      <div class="suggestion-title">${escapeHtml(s.value)}</div>
+      <div class="suggestion-meta">${escapeHtml(s.kind)}${s.meta ? " • " + escapeHtml(s.meta) : ""}</div>
+    </div>
+  `).join("");
+
+  box._items = suggestions;
+  box._handlerName = handlerName;
+  box.classList.add("open");
+}
+
+function closeSuggestionBox(boxId) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.classList.remove("open");
+  box.innerHTML = "";
+  box._items = [];
+  box._handlerName = "";
+}
+
+function closeAllSuggestionBoxes() {
+  closeSuggestionBox("searchSuggestions");
+  closeSuggestionBox("titleSuggestions");
+  closeSuggestionBox("bodySuggestions");
+}
+
+function applySearchSuggestion(item) {
+  const q = document.getElementById("q");
+  if (!q) return;
+
+  q.value = item.value;
+  closeSuggestionBox("searchSuggestions");
+  doSearch();
+}
+
+function applyTitleSuggestion(item) {
+  const title = document.getElementById("add_title");
+  const topic = document.getElementById("add_topic");
+
+  if (title) title.value = item.value;
+
+  if (topic && item.meta && !topic.value.trim()) {
+    const parts = item.meta.split("•").map(x => x.trim()).filter(Boolean);
+    if (parts.length > 1) topic.value = parts[1];
+  }
+
+  closeSuggestionBox("titleSuggestions");
+}
+
+function applyBodySuggestion(item) {
+  const box = document.getElementById("add_body");
+  if (!box) return;
+
+  const insert = `\n\n## Related Suggestion\n- ${item.value}\n`;
+  box.value = (box.value + insert).trim();
+
+  closeSuggestionBox("bodySuggestions");
+}
+
+function updateSearchSuggestions() {
+  const q = document.getElementById("q")?.value.trim() || "";
+  if (!q) {
+    closeSuggestionBox("searchSuggestions");
+    return;
+  }
+
+  const suggestions = getSuggestions(q, 5);
+  renderSuggestionBox("searchSuggestions", suggestions, "applySearchSuggestion");
+}
+
+function updateTitleSuggestions() {
+  const q = document.getElementById("add_title")?.value.trim() || "";
+  if (!q) {
+    closeSuggestionBox("titleSuggestions");
+    return;
+  }
+
+  const suggestions = getSuggestions(q, 5);
+  renderSuggestionBox("titleSuggestions", suggestions, "applyTitleSuggestion");
+}
+
+function updateBodySuggestions() {
+  const body = document.getElementById("add_body")?.value.trim() || "";
+  if (!body) {
+    closeSuggestionBox("bodySuggestions");
+    return;
+  }
+
+  const tail = body.split(/\s+/).slice(-6).join(" ");
+  const suggestions = getSuggestions(tail, 5);
+  renderSuggestionBox("bodySuggestions", suggestions, "applyBodySuggestion");
+}
 
 // ---------------- Index + Search ----------------
 async function loadIndex() {
@@ -19,6 +194,8 @@ async function loadIndex() {
     threshold: 0.35,
     keys: ["title", "subject", "exam", "topic", "tags", "text", "filename", "path", "slug"]
   });
+
+  buildSuggestionIndex();
 
   currentPage = 1;
   renderResults(KB);
@@ -75,12 +252,14 @@ function renderResults(items) {
   const nextBtn = document.getElementById("nextBtn");
   const pageInfo = document.getElementById("pageInfo");
 
-  prevBtn.disabled = currentPage <= 1;
-  nextBtn.disabled = currentPage >= totalPages;
+  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 
-  pageInfo.textContent = total
-    ? `Page ${currentPage} / ${totalPages} • ${total} results`
-    : `Page 1 / 1 • 0 results`;
+  if (pageInfo) {
+    pageInfo.textContent = total
+      ? `Page ${currentPage} / ${totalPages} • ${total} results`
+      : `Page 1 / 1 • 0 results`;
+  }
 
   updateDeleteSelectedButton();
 }
@@ -104,34 +283,11 @@ function openGitHubDeletePage(filePath) {
   const OWNER = "singh-nishant-2010";
   const REPO = "JEE-Atlas";
 
-  // path in index is kb/... ; repo file is docs/kb/...
   const repoPath = `docs/${filePath}`;
   const githubDeleteURL = `https://github.com/${OWNER}/${REPO}/delete/main/${repoPath}`;
 
   window.open(githubDeleteURL, "_blank");
 }
-
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".delete-note");
-  if (!btn) return;
-
-  const filePath = btn.getAttribute("data-path");
-  if (!filePath) return;
-
-  const confirmDelete = confirm(
-    `Delete this note from the repository?\n\n${filePath}`
-  );
-
-  if (!confirmDelete) return;
-
-  const OWNER = "singh-nishant-2010";
-  const REPO = "JEE-Atlas";
-
-  const githubDeleteURL =
-    `https://github.com/${OWNER}/${REPO}/delete/main/docs/${filePath}`;
-
-  window.open(githubDeleteURL, "_blank");
-});
 
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, c => ({
@@ -152,7 +308,6 @@ function doSearch() {
 
   if (subject) base = base.filter(x => x.subject === subject);
 
-  // forgiving exam filter
   if (exam) {
     base = base.filter(x => {
       if (!x.exam) return true;
@@ -201,9 +356,12 @@ function setupVoice() {
       if (event.results[i].isFinal) finalText += text + " ";
       else interim += text;
     }
+
     const box = document.getElementById("add_body");
     if (!box) return;
+
     box.value = (box.value + "\n\n" + (finalText || interim)).trim();
+    updateBodySuggestions();
   };
 
   recognition.onend = () => {
@@ -217,10 +375,13 @@ function setupVoice() {
 function startVoice() {
   if (!recognition) return;
   finalText = "";
+
   const mic = document.getElementById("mic");
   const stopMicBtn = document.getElementById("stopMic");
+
   if (mic) mic.disabled = true;
   if (stopMicBtn) stopMicBtn.disabled = false;
+
   recognition.start();
 }
 
@@ -278,7 +439,6 @@ function openGithubCommit() {
   const topic = document.getElementById("add_topic").value.trim() || "general";
   const title = document.getElementById("add_title").value.trim() || "untitled";
 
-  // kb under docs
   const path = `docs/kb/${slugify(subject)}/${topic.split("/").map(slugify).join("/")}/${slugify(title)}.md`;
 
   const url =
@@ -348,7 +508,7 @@ function buildPrompt() {
   return `${base}\n\nUser question/topic:\n${userPart}`;
 }
 
-// ---------------- AI menu (FIXED: bind after DOM ready + open immediately) ----------------
+// ---------------- AI menu ----------------
 function initAiMenu() {
   const askBtn = document.getElementById("askAiBtn");
   const aiMenu = document.getElementById("aiMenu");
@@ -359,7 +519,6 @@ function initAiMenu() {
     claude: "https://claude.ai/",
     gemini: "https://gemini.google.com/",
     copilot: "https://copilot.microsoft.com/",
-    // Perplexity supports prefill query
     perplexity: (prompt) => `https://www.perplexity.ai/?q=${encodeURIComponent(prompt)}`
   };
 
@@ -399,7 +558,6 @@ function initAiMenu() {
   async function openAiProvider(provider) {
     const prompt = buildPrompt();
 
-    // copy prompt
     try {
       await navigator.clipboard.writeText(prompt);
       toast("Prompt copied — paste in the opened AI chat");
@@ -407,7 +565,6 @@ function initAiMenu() {
       toast("Open AI — copy/paste prompt manually");
     }
 
-    // open tab
     let url = AI_LINKS[provider] || AI_LINKS.chatgpt;
     if (typeof url === "function") url = url(prompt);
 
@@ -432,55 +589,99 @@ function initAiMenu() {
     openAiProvider(provider);
   });
 
-  document.addEventListener("click", () => toggleAiMenu(false));
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".ai")) toggleAiMenu(false);
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") toggleAiMenu(false);
   });
 }
 
-//-------- Content Validation ---------------------
-
+// -------- Content Validation ---------------------
 function validateContent(content, subject, exam) {
-    // Expanded forbidden words list
-    const forbiddenWords = [
-        "inappropriate", "insensitive", "offensive", "abuse", "harassment", "hate",
-        "violence", "racism", "sexism", "profanity", "slur", "vulgar", "obscene",
-        "discrimination", "bullying", "threat", "terrorism", "extremism", "illegal",
-        "drugs", "weapon", "pornography", "explicit", "self-harm", "suicide",
-        "misinformation", "fake news", "spam", "irrelevant", "nonsense", "trolling"
-    ];
+  const forbiddenWords = [
+    "inappropriate", "insensitive", "offensive", "abuse", "harassment", "hate",
+    "violence", "racism", "sexism", "profanity", "slur", "vulgar", "obscene",
+    "discrimination", "bullying", "threat", "terrorism", "extremism", "illegal",
+    "drugs", "weapon", "pornography", "explicit", "self-harm", "suicide",
+    "misinformation", "fake news", "spam", "irrelevant", "nonsense", "trolling"
+  ];
 
-    // Check for forbidden words
-    for (const word of forbiddenWords) {
-        if (content.toLowerCase().includes(word)) {
-            alert(`Your content contains forbidden words: "${word}". Please remove them.`);
-            return false;
-        }
+  for (const word of forbiddenWords) {
+    if (content.toLowerCase().includes(word)) {
+      alert(`Your content contains forbidden words: "${word}". Please remove them.`);
+      return false;
     }
+  }
 
-    // Additional validation for subject and exam
-    const allowedSubjects = ["Physics", "Chemistry", "Maths", "English", "Computer Science"];
-    const allowedExams = ["School", "JEE_Main", "JEE_Advanced"];
+  const allowedSubjects = ["Physics", "Chemistry", "Maths", "English", "Computer Science"];
+  const allowedExams = ["School", "JEE_Main", "JEE_Advanced"];
 
-    if (!allowedSubjects.includes(subject)) {
-        alert("Invalid subject. Please select a valid subject.");
-        return false;
-    }
-    if (!allowedExams.includes(exam)) {
-        alert("Invalid exam level. Please select a valid exam.");
-        return false;
-    }
+  if (!allowedSubjects.includes(subject)) {
+    alert("Invalid subject. Please select a valid subject.");
+    return false;
+  }
+  if (!allowedExams.includes(exam)) {
+    alert("Invalid exam level. Please select a valid exam.");
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
+// ---------------- Global delegated click handlers ----------------
+document.addEventListener("click", (e) => {
+  // suggestion item click
+  const itemEl = e.target.closest(".suggestion-item");
+  if (itemEl) {
+    const boxId = itemEl.getAttribute("data-box");
+    const box = document.getElementById(boxId);
+    if (!box || !box._items) return;
+
+    const idx = Number(itemEl.getAttribute("data-idx"));
+    const item = box._items[idx];
+    if (!item) return;
+
+    if (box._handlerName === "applySearchSuggestion") applySearchSuggestion(item);
+    if (box._handlerName === "applyTitleSuggestion") applyTitleSuggestion(item);
+    if (box._handlerName === "applyBodySuggestion") applyBodySuggestion(item);
+    return;
+  }
+
+  // single delete
+  const btn = e.target.closest(".delete-note");
+  if (btn) {
+    const filePath = btn.getAttribute("data-path");
+    if (!filePath) return;
+
+    const confirmDelete = confirm(`Delete this note from the repository?\n\n${filePath}`);
+    if (!confirmDelete) return;
+
+    openGitHubDeletePage(filePath);
+    return;
+  }
+
+  // click outside suggestions closes them
+  if (!e.target.closest("#q")) closeSuggestionBox("searchSuggestions");
+  if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
+  if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
+});
 
 // ---------------- Wire everything safely after DOM is ready ----------------
 window.addEventListener("DOMContentLoaded", () => {
-  // Wiring search
-  document.getElementById("q")?.addEventListener("input", doSearch);
+  // Search
+  document.getElementById("q")?.addEventListener("input", () => {
+    doSearch();
+    updateSearchSuggestions();
+  });
+
   document.getElementById("subject")?.addEventListener("change", doSearch);
   document.getElementById("exam")?.addEventListener("change", doSearch);
+
+  // Title/body suggestions
+  document.getElementById("add_title")?.addEventListener("input", updateTitleSuggestions);
+  document.getElementById("add_body")?.addEventListener("input", updateBodySuggestions);
 
   // Pager
   document.getElementById("prevBtn")?.addEventListener("click", () => {
@@ -508,52 +709,41 @@ window.addEventListener("DOMContentLoaded", () => {
     box.value = "";
     const prev = document.getElementById("mdPreview");
     if (prev) prev.textContent = "";
+
+    closeSuggestionBox("bodySuggestions");
+    closeSuggestionBox("titleSuggestions");
   });
 
   // Voice
   document.getElementById("mic")?.addEventListener("click", startVoice);
   document.getElementById("stopMic")?.addEventListener("click", stopVoice);
 
-    // Manage mode toggle
-    document.getElementById("manageMode")?.addEventListener("change", () => {
-      renderResults(currentItems);
+  // Manage mode toggle
+  document.getElementById("manageMode")?.addEventListener("change", () => {
+    renderResults(currentItems);
+  });
+
+  // Checkbox updates
+  document.addEventListener("change", (e) => {
+    if (e.target.classList.contains("noteSelector")) {
+      updateDeleteSelectedButton();
+    }
+  });
+
+  // Bulk delete
+  document.getElementById("deleteSelectedBtn")?.addEventListener("click", () => {
+    const selected = getSelectedNotePaths();
+    if (!selected.length) return;
+
+    const confirmDelete = confirm(
+      `Delete ${selected.length} selected note(s)?\n\n${selected.join("\n")}`
+    );
+    if (!confirmDelete) return;
+
+    selected.forEach((path, idx) => {
+      setTimeout(() => openGitHubDeletePage(path), idx * 300);
     });
-
-    // Single delete
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest(".delete-note");
-      if (!btn) return;
-
-      const filePath = btn.getAttribute("data-path");
-      if (!filePath) return;
-
-      const confirmDelete = confirm(`Delete this note from the repository?\n\n${filePath}`);
-      if (!confirmDelete) return;
-
-      openGitHubDeletePage(filePath);
-    });
-
-    // Checkbox updates
-    document.addEventListener("change", (e) => {
-      if (e.target.classList.contains("noteSelector")) {
-        updateDeleteSelectedButton();
-      }
-    });
-
-    // Bulk delete
-    document.getElementById("deleteSelectedBtn")?.addEventListener("click", () => {
-      const selected = getSelectedNotePaths();
-      if (!selected.length) return;
-
-      const confirmDelete = confirm(
-        `Delete ${selected.length} selected note(s)?\n\n` + selected.join("\n")
-      );
-      if (!confirmDelete) return;
-
-      selected.forEach((path, idx) => {
-        setTimeout(() => openGitHubDeletePage(path), idx * 300);
-      });
-    });
+  });
 
   setupVoice();
   initTheme();

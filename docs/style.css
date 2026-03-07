@@ -472,3 +472,42 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     align-items: flex-start;
   }
 }
+
+.suggestions {
+  margin-top: 6px;
+  display: none;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.suggestions.open {
+  display: block;
+}
+
+.suggestion-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  background: transparent;
+}
+
+.suggestion-item:last-child {
+  border-bottom: 0;
+}
+
+.suggestion-item:hover {
+  background: var(--input);
+}
+
+.suggestion-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.suggestion-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
