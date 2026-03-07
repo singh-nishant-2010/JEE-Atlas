@@ -1,0 +1,40 @@
+name: Convert KB Issue to Markdown
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  convert:
+    if: contains(github.event.issue.labels.*.name, 'kb')
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Extract markdown from issue
+        run: |
+          echo "${{ github.event.issue.body }}" > issue.txt
+
+          sed -n '/```markdown/,/```/p' issue.txt | sed '1d;$d' > note.md
+
+      - name: Generate filename
+        run: |
+          TITLE="${{ github.event.issue.title }}"
+          SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+          echo "FILE=$SLUG.md" >> $GITHUB_ENV
+
+      - name: Move file
+        run: |
+          mkdir -p docs/kb/contributions
+          mv note.md docs/kb/contributions/${{ env.FILE }}
+
+      - name: Commit file
+        run: |
+          git config user.name "kb-bot"
+          git config user.email "bot@github.com"
+          git add .
+          git commit -m "Add KB note from issue #${{ github.event.issue.number }}"
+          git push
