@@ -111,12 +111,6 @@ function closeSuggestionBox(boxId) {
   box._handlerName = "";
 }
 
-function closeAllSuggestionBoxes() {
-  closeSuggestionBox("searchSuggestions");
-  closeSuggestionBox("titleSuggestions");
-  closeSuggestionBox("bodySuggestions");
-}
-
 function applySearchSuggestion(item) {
   const q = document.getElementById("q");
   if (!q) return;
@@ -329,7 +323,7 @@ function doSearch() {
   renderResults(items);
 }
 
-// ---------------- Voice to text (Web Speech API) ----------------
+// ---------------- Voice to text ----------------
 let recognition = null;
 let finalText = "";
 
@@ -390,7 +384,7 @@ function stopVoice() {
   recognition.stop();
 }
 
-// ---------------- Add content -> generate Markdown + open GitHub ----------------
+// ---------------- Add content ----------------
 let generatedMd = "";
 
 function slugify(s) {
@@ -408,6 +402,8 @@ function generateMarkdown() {
   const tags = document.getElementById("add_tags").value.split(",").map(x => x.trim()).filter(Boolean);
   const title = document.getElementById("add_title").value.trim() || "Untitled";
   const body = document.getElementById("add_body").value.trim();
+
+  if (!validateContent(body, subject, exam)) return;
 
   const today = new Date().toISOString().slice(0, 10);
   const id = `${slugify(subject)}_${slugify(topic)}_${slugify(title)}_${today}`.replace(/-+/g, "_");
@@ -431,24 +427,46 @@ ${body || "Write your content here..."}
   document.getElementById("openGithub").disabled = false;
 }
 
+/* Secure GitHub-native proposal flow:
+   opens a prefilled GitHub Issue instead of direct repo write */
 function openGithubCommit() {
   const OWNER = "singh-nishant-2010";
   const REPO = "JEE-Atlas";
 
   const subject = document.getElementById("add_subject").value;
   const topic = document.getElementById("add_topic").value.trim() || "general";
-  const title = document.getElementById("add_title").value.trim() || "untitled";
+  const title = document.getElementById("add_title").value.trim() || "Untitled";
 
-  const path = `docs/kb/${slugify(subject)}/${topic.split("/").map(slugify).join("/")}/${slugify(title)}.md`;
+  if (!generatedMd.trim()) {
+    alert("Generate the markdown first.");
+    return;
+  }
+
+  const issueTitle = `[KB] ${subject}: ${title}`;
+  const issueBody =
+`### Proposed Knowledge Base Note
+
+**Subject:** ${subject}
+**Topic:** ${topic}
+
+---
+
+\`\`\`markdown
+${generatedMd}
+\`\`\`
+
+---
+
+Please review and merge this into the knowledge base.
+`;
 
   const url =
-    `https://github.com/${OWNER}/${REPO}/new/main/${encodeURIComponent(path)}`
-    + `?value=${encodeURIComponent(generatedMd)}`;
+    `https://github.com/${OWNER}/${REPO}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
 
   window.open(url, "_blank");
 }
 
-// ---------------- Theme Toggle (slider) ----------------
+// ---------------- Theme Toggle ----------------
 function setTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
@@ -474,7 +492,7 @@ function initTheme() {
   }
 }
 
-// ---------------- AI prompt (Subject-aware) ----------------
+// ---------------- AI prompt ----------------
 function getSelectedSubject() {
   const sel = document.getElementById("subject");
   return sel ? (sel.value || "").trim() : "";
@@ -598,7 +616,7 @@ function initAiMenu() {
   });
 }
 
-// -------- Content Validation ---------------------
+// ---------------- Content Validation ----------------
 function validateContent(content, subject, exam) {
   const forbiddenWords = [
     "inappropriate", "insensitive", "offensive", "abuse", "harassment", "hate",
@@ -622,6 +640,7 @@ function validateContent(content, subject, exam) {
     alert("Invalid subject. Please select a valid subject.");
     return false;
   }
+
   if (!allowedExams.includes(exam)) {
     alert("Invalid exam level. Please select a valid exam.");
     return false;
@@ -632,7 +651,6 @@ function validateContent(content, subject, exam) {
 
 // ---------------- Global delegated click handlers ----------------
 document.addEventListener("click", (e) => {
-  // suggestion item click
   const itemEl = e.target.closest(".suggestion-item");
   if (itemEl) {
     const boxId = itemEl.getAttribute("data-box");
@@ -649,7 +667,6 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  // single delete
   const btn = e.target.closest(".delete-note");
   if (btn) {
     const filePath = btn.getAttribute("data-path");
@@ -662,15 +679,13 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  // click outside suggestions closes them
-  if (!e.target.closest("#q")) closeSuggestionBox("searchSuggestions");
+  if (!e.target.closest(".search-wrap")) closeSuggestionBox("searchSuggestions");
   if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
   if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
 });
 
-// ---------------- Wire everything safely after DOM is ready ----------------
+// ---------------- Wire everything after DOM ready ----------------
 window.addEventListener("DOMContentLoaded", () => {
-  // Search
   document.getElementById("q")?.addEventListener("input", () => {
     doSearch();
     updateSearchSuggestions();
@@ -679,11 +694,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("subject")?.addEventListener("change", doSearch);
   document.getElementById("exam")?.addEventListener("change", doSearch);
 
-  // Title/body suggestions
   document.getElementById("add_title")?.addEventListener("input", updateTitleSuggestions);
   document.getElementById("add_body")?.addEventListener("input", updateBodySuggestions);
 
-  // Pager
   document.getElementById("prevBtn")?.addEventListener("click", () => {
     currentPage -= 1;
     renderResults(currentItems);
@@ -694,11 +707,9 @@ window.addEventListener("DOMContentLoaded", () => {
     renderResults(currentItems);
   });
 
-  // Add content
   document.getElementById("gen")?.addEventListener("click", generateMarkdown);
   document.getElementById("openGithub")?.addEventListener("click", openGithubCommit);
 
-  // Clear markdown
   document.getElementById("clearMd")?.addEventListener("click", () => {
     const box = document.getElementById("add_body");
     if (!box || !box.value.trim()) return;
@@ -714,23 +725,19 @@ window.addEventListener("DOMContentLoaded", () => {
     closeSuggestionBox("titleSuggestions");
   });
 
-  // Voice
   document.getElementById("mic")?.addEventListener("click", startVoice);
   document.getElementById("stopMic")?.addEventListener("click", stopVoice);
 
-  // Manage mode toggle
   document.getElementById("manageMode")?.addEventListener("change", () => {
     renderResults(currentItems);
   });
 
-  // Checkbox updates
   document.addEventListener("change", (e) => {
     if (e.target.classList.contains("noteSelector")) {
       updateDeleteSelectedButton();
     }
   });
 
-  // Bulk delete
   document.getElementById("deleteSelectedBtn")?.addEventListener("click", () => {
     const selected = getSelectedNotePaths();
     if (!selected.length) return;
