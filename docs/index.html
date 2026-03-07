@@ -13,7 +13,6 @@
         <h1>JEE Knowledge Base</h1>
 
         <div class="header-controls">
-            <!-- theme switch -->
             <div class="theme-switch">
                 <span class="theme-ico sun" aria-hidden="true">☀</span>
                 <label class="switch" title="Toggle theme">
@@ -23,7 +22,6 @@
                 <span class="theme-ico moon" aria-hidden="true">☾</span>
             </div>
 
-            <!-- Ask AI button + menu -->
             <div class="ai">
                 <button id="askAiBtn" class="ai-btn" type="button" aria-haspopup="menu" aria-expanded="false">
                     <span class="ai-spark" aria-hidden="true">✨</span>
@@ -49,7 +47,7 @@
     <section class="card">
         <h2>Search</h2>
 
-        <div class="row">
+        <div class="search-wrap">
             <input id="q" placeholder="Search topic, formula, concept…" />
             <div id="searchSuggestions" class="suggestions"></div>
         </div>
@@ -82,6 +80,7 @@
         </div>
 
         <div id="results"></div>
+
         <div id="pager" class="pager">
             <button id="prevBtn" disabled>← Prev</button>
             <span id="pageInfo" class="muted"></span>
@@ -94,9 +93,13 @@
 
         <div class="row">
             <select id="add_subject">
-                <option>Physics</option><option>Chemistry</option><option>Maths</option>
-                <option>English</option><option>Computer Science</option>
+                <option>Physics</option>
+                <option>Chemistry</option>
+                <option>Maths</option>
+                <option>English</option>
+                <option>Computer Science</option>
             </select>
+
             <input id="add_topic" placeholder="Topic path e.g. Mechanics/Laws of Motion" />
         </div>
 
@@ -106,10 +109,11 @@
                 <option>JEE_Main</option>
                 <option>JEE_Advanced</option>
             </select>
+
             <input id="add_tags" placeholder="tags: friction, fbd, newton" />
         </div>
 
-        <div class="row">
+        <div class="input-wrap">
             <input id="add_title" placeholder="Title e.g. Newton’s Laws" />
             <div id="titleSuggestions" class="suggestions"></div>
         </div>
@@ -119,8 +123,10 @@
             <button id="stopMic" disabled>⏹ Stop</button>
         </div>
 
-        <textarea id="add_body" rows="12" placeholder="Write your note in Markdown…"></textarea>
-        <div id="bodySuggestions" class="suggestions"></div>
+        <div class="input-wrap">
+            <textarea id="add_body" rows="12" placeholder="Write your note in Markdown…"></textarea>
+            <div id="bodySuggestions" class="suggestions"></div>
+        </div>
 
         <div class="row">
             <button id="gen">Generate Markdown</button>
@@ -132,6 +138,6 @@
     </section>
 </main>
 
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>
