@@ -618,3 +618,23 @@ button:disabled {
     padding: 0;
   }
 }
+
+.result-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.edit-note,
+.delete-note {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.edit-note:hover,
+.delete-note:hover {
+  background: var(--input);
+}

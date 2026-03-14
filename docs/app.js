@@ -10,6 +10,7 @@ let currentPage = 1;
 let currentItems = [];
 
 let suggestionFuse = null;
+let editingPath = null;
 
 // ---------------- Suggestion Index ----------------
 function buildSuggestionIndex() {
@@ -229,9 +230,10 @@ function renderResults(items) {
             </div>
 
             ${manageMode ? `
-              <button class="delete-note" data-path="${escapeHtml(p)}" title="Delete this note">
-                🗑
-              </button>
+              <div class="result-actions">
+                <button class="edit-note" data-path="${escapeHtml(p)}" title="Edit this note">✏️</button>
+                <button class="delete-note" data-path="${escapeHtml(p)}" title="Delete this note">🗑</button>
+              </div>
             ` : ""}
           </div>
 
@@ -384,7 +386,7 @@ function stopVoice() {
   recognition.stop();
 }
 
-// ---------------- Add content ----------------
+// ---------------- Add / Edit content ----------------
 let generatedMd = "";
 
 function slugify(s) {
@@ -393,6 +395,101 @@ function slugify(s) {
     .replace(/['"]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function parseFrontmatter(md) {
+  if (!md.startsWith("---")) {
+    return { frontmatter: {}, body: md };
+  }
+
+  const parts = md.split("---");
+  if (parts.length < 3) {
+    return { frontmatter: {}, body: md };
+  }
+
+  const raw = parts[1].trim();
+  const body = parts.slice(2).join("---").trim();
+
+  const fm = {};
+  raw.split("\n").forEach(line => {
+    const idx = line.indexOf(":");
+    if (idx === -1) return;
+
+    const key = line.slice(0, idx).trim();
+    const value = line.slice(idx + 1).trim();
+    fm[key] = value;
+  });
+
+  return { frontmatter: fm, body };
+}
+
+function extractTitle(mdBody) {
+  const lines = mdBody.split("\n");
+  const idx = lines.findIndex(l => l.startsWith("# "));
+
+  if (idx === -1) {
+    return {
+      title: "",
+      body: mdBody
+    };
+  }
+
+  const title = lines[idx].replace(/^#\s+/, "").trim();
+  lines.splice(idx, 1);
+
+  return {
+    title,
+    body: lines.join("\n").trim()
+  };
+}
+
+async function loadNoteForEditing(path) {
+  try {
+    const res = await fetch(`./${path}`);
+    if (!res.ok) throw new Error("Failed to load note.");
+
+    const md = await res.text();
+    const parsed = parseFrontmatter(md);
+    const content = extractTitle(parsed.body);
+
+    editingPath = path;
+
+    const subject = parsed.frontmatter.subject || "";
+    const exam = parsed.frontmatter.exam || "";
+    const topic = parsed.frontmatter.topic || "";
+    const tags = parsed.frontmatter.tags || "";
+
+    const addSubject = document.getElementById("add_subject");
+    const addExam = document.getElementById("add_exam");
+    const addTopic = document.getElementById("add_topic");
+    const addTags = document.getElementById("add_tags");
+    const addTitle = document.getElementById("add_title");
+    const addBody = document.getElementById("add_body");
+    const openBtn = document.getElementById("openGithub");
+    const preview = document.getElementById("mdPreview");
+
+    if (addSubject && subject) addSubject.value = subject.replace(/[\[\]]/g, "");
+    if (addExam && exam) addExam.value = exam.replace(/[\[\]]/g, "");
+    if (addTopic) addTopic.value = topic;
+    if (addTags) addTags.value = tags.replace(/^\[|\]$/g, "");
+    if (addTitle) addTitle.value = content.title;
+    if (addBody) addBody.value = content.body;
+
+    if (preview) preview.textContent = "";
+    generatedMd = "";
+
+    if (openBtn) {
+      openBtn.disabled = false;
+      openBtn.textContent = "Submit Update Suggestion";
+    }
+
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth"
+    });
+  } catch (err) {
+    alert(err.message || "Could not load note for editing.");
+  }
 }
 
 function generateMarkdown() {
@@ -423,8 +520,11 @@ last_updated: ${today}
 ${body || "Write your content here..."}
 `;
 
-  document.getElementById("mdPreview").textContent = generatedMd;
-  document.getElementById("openGithub").disabled = false;
+  const preview = document.getElementById("mdPreview");
+  if (preview) preview.textContent = generatedMd;
+
+  const openBtn = document.getElementById("openGithub");
+  if (openBtn) openBtn.disabled = false;
 }
 
 /* Secure GitHub-native proposal flow:
@@ -442,12 +542,35 @@ function openGithubCommit() {
     return;
   }
 
-  const issueTitle = `[KB] ${subject}: ${title}`;
-  const issueBody =
-`### Proposed Knowledge Base Note
+  const isUpdate = !!editingPath;
 
-**Subject:** ${subject}
-**Topic:** ${topic}
+  const issueTitle = isUpdate
+    ? `[KB UPDATE] ${subject}: ${title}`
+    : `[KB] ${subject}: ${title}`;
+
+  const issueBody = isUpdate
+    ? `### Knowledge Base Update Proposal
+
+Original file:
+${editingPath}
+
+Subject: ${subject}
+Topic: ${topic}
+
+---
+
+\`\`\`markdown
+${generatedMd}
+\`\`\`
+
+---
+
+Please review and replace the existing note with this updated content.
+`
+    : `### Proposed Knowledge Base Note
+
+Subject: ${subject}
+Topic: ${topic}
 
 ---
 
@@ -667,9 +790,18 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const btn = e.target.closest(".delete-note");
-  if (btn) {
-    const filePath = btn.getAttribute("data-path");
+  const editBtn = e.target.closest(".edit-note");
+  if (editBtn) {
+    const path = editBtn.getAttribute("data-path");
+    if (!path) return;
+
+    loadNoteForEditing(path);
+    return;
+  }
+
+  const deleteBtn = e.target.closest(".delete-note");
+  if (deleteBtn) {
+    const filePath = deleteBtn.getAttribute("data-path");
     if (!filePath) return;
 
     const confirmDelete = confirm(`Delete this note from the repository?\n\n${filePath}`);
@@ -680,8 +812,12 @@ document.addEventListener("click", (e) => {
   }
 
   if (!e.target.closest(".search-wrap")) closeSuggestionBox("searchSuggestions");
-  if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
-  if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
+  if (!e.target.closest(".input-wrap") || !e.target.closest("#add_title")) {
+    if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
+  }
+  if (!e.target.closest(".input-wrap") || !e.target.closest("#add_body")) {
+    if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
+  }
 });
 
 // ---------------- Wire everything after DOM ready ----------------
@@ -720,6 +856,15 @@ window.addEventListener("DOMContentLoaded", () => {
     box.value = "";
     const prev = document.getElementById("mdPreview");
     if (prev) prev.textContent = "";
+
+    generatedMd = "";
+    editingPath = null;
+
+    const openBtn = document.getElementById("openGithub");
+    if (openBtn) {
+      openBtn.textContent = "Submit Suggestion";
+      openBtn.disabled = true;
+    }
 
     closeSuggestionBox("bodySuggestions");
     closeSuggestionBox("titleSuggestions");
