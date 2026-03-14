@@ -450,7 +450,7 @@ function setEditMode(path = null) {
   const cancelBtn = document.getElementById("cancelEdit");
 
   if (openBtn) {
-    openBtn.textContent = path ? "Submit Update Suggestion" : "Submit Suggestion";
+    openBtn.textContent = path ? "Submit Updated Notes" : "Submit Notes";
   }
 
   if (cancelBtn) {
