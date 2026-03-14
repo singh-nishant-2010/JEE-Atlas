@@ -4,47 +4,65 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>JEE Knowledge Base</title>
+
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
 </head>
+
 <body>
+
 <header>
+
     <div class="header-top">
+
         <h1>JEE Knowledge Base</h1>
 
         <div class="header-controls">
+
             <div class="theme-switch">
-                <span class="theme-ico sun" aria-hidden="true">☀</span>
-                <label class="switch" title="Toggle theme">
-                    <input id="themeToggle" type="checkbox" aria-label="Toggle dark mode" />
+                <span class="theme-ico sun">☀</span>
+
+                <label class="switch">
+                    <input id="themeToggle" type="checkbox"/>
                     <span class="slider"></span>
                 </label>
-                <span class="theme-ico moon" aria-hidden="true">☾</span>
+
+                <span class="theme-ico moon">☾</span>
             </div>
 
             <div class="ai">
-                <button id="askAiBtn" class="ai-btn" type="button" aria-haspopup="menu" aria-expanded="false">
-                    <span class="ai-spark" aria-hidden="true">✨</span>
+
+                <button id="askAiBtn" class="ai-btn" type="button">
+                    <span class="ai-spark">✨</span>
                     <span>Ask AI</span>
-                    <span class="ai-caret" aria-hidden="true">▾</span>
+                    <span class="ai-caret">▾</span>
                 </button>
 
-                <div id="aiMenu" class="ai-menu" role="menu" aria-label="AI providers">
-                    <button type="button" class="ai-item" role="menuitem" data-ai="chatgpt">ChatGPT</button>
-                    <button type="button" class="ai-item" role="menuitem" data-ai="claude">Claude</button>
-                    <button type="button" class="ai-item" role="menuitem" data-ai="gemini">Gemini</button>
-                    <button type="button" class="ai-item" role="menuitem" data-ai="copilot">Copilot</button>
-                    <button type="button" class="ai-item" role="menuitem" data-ai="perplexity">Perplexity</button>
+                <div id="aiMenu" class="ai-menu">
+
+                    <button class="ai-item" data-ai="chatgpt">ChatGPT</button>
+                    <button class="ai-item" data-ai="claude">Claude</button>
+                    <button class="ai-item" data-ai="gemini">Gemini</button>
+                    <button class="ai-item" data-ai="copilot">Copilot</button>
+                    <button class="ai-item" data-ai="perplexity">Perplexity</button>
+
                 </div>
+
             </div>
         </div>
     </div>
 
     <p>Physics • Chemistry • Maths • English • Computer Science</p>
+
 </header>
 
+
 <main class="grid">
+
+
     <section class="card">
+
         <h2>Search</h2>
 
         <div class="search-wrap">
@@ -53,6 +71,7 @@
         </div>
 
         <div class="row">
+
             <select id="subject">
                 <option value="">All Subjects</option>
                 <option>Physics</option>
@@ -68,30 +87,43 @@
                 <option>JEE_Main</option>
                 <option>JEE_Advanced</option>
             </select>
+
         </div>
 
+
         <div class="manage-bar">
+
             <label class="manage-toggle">
                 <input type="checkbox" id="manageMode" />
                 <span>Manage Notes</span>
             </label>
 
             <button id="deleteSelectedBtn" disabled>Delete Selected</button>
+
         </div>
+
 
         <div id="results"></div>
 
         <div id="pager" class="pager">
+
             <button id="prevBtn" disabled>← Prev</button>
             <span id="pageInfo" class="muted"></span>
             <button id="nextBtn" disabled>Next →</button>
+
         </div>
+
     </section>
 
+
+
     <section class="card">
+
         <h2>Add Content (Voice / Text)</h2>
 
+
         <div class="row">
+
             <select id="add_subject">
                 <option>Physics</option>
                 <option>Chemistry</option>
@@ -101,9 +133,12 @@
             </select>
 
             <input id="add_topic" placeholder="Topic path e.g. Mechanics/Laws of Motion" />
+
         </div>
 
+
         <div class="row">
+
             <select id="add_exam">
                 <option>School</option>
                 <option>JEE_Main</option>
@@ -111,49 +146,96 @@
             </select>
 
             <input id="add_tags" placeholder="tags: friction, fbd, newton" />
+
         </div>
+
 
         <div class="input-wrap">
             <input id="add_title" placeholder="Title e.g. Newton’s Laws" />
             <div id="titleSuggestions" class="suggestions"></div>
         </div>
 
+
         <div class="row">
             <button id="mic">🎙 Start Voice</button>
             <button id="stopMic" disabled>⏹ Stop</button>
         </div>
 
+
+
         <div class="input-wrap">
-            <textarea id="add_body" rows="12" placeholder="Write your note in Markdown…"></textarea>
+
+<textarea
+        id="add_body"
+        rows="12"
+        placeholder="Write your note in Markdown…"
+></textarea>
+
             <div id="bodySuggestions" class="suggestions"></div>
+
         </div>
+
+
+
+        <!-- IMAGE SECTION -->
 
         <div class="image-block">
-            <h3>Images / Screenshots</h3>
+
+            <h3>Insert Image / Screenshot</h3>
 
             <div class="row">
-                <input id="add_image_url" placeholder="Image URL e.g. https://.../diagram.png" />
-                <input id="add_image_alt" placeholder="Alt text e.g. Free body diagram" />
+
+                <input
+                        type="file"
+                        id="imageFile"
+                        accept="image/*"
+                />
+
+                <input
+                        id="imageAltText"
+                        placeholder="Alt text e.g. Free body diagram"
+                />
+
+                <button id="insertImageBtn" type="button">
+                    Insert Image
+                </button>
+
             </div>
 
-            <div class="row">
-                <button id="addImageBtn" type="button">Add Image</button>
-                <button id="cancelEdit" type="button" style="display:none;">Cancel Edit</button>
-            </div>
+            <p class="muted">
+                You can upload screenshots from device or mobile. Image will be inserted inside markdown.
+            </p>
 
-            <div id="imageList" class="image-list"></div>
         </div>
+
+
 
         <div class="row">
+
             <button id="gen">Generate Markdown</button>
+
             <button id="clearMd">Clear</button>
-            <button id="openGithub" disabled>Submit Suggestion</button>
+
+            <button id="cancelEdit" style="display:none;">
+                Cancel Edit
+            </button>
+
+            <button id="openGithub" disabled>
+                Submit Suggestion
+            </button>
+
         </div>
 
+
         <pre id="mdPreview" class="preview"></pre>
+
     </section>
+
 </main>
 
+
+
 <script src="app.js" defer></script>
+
 </body>
 </html>
