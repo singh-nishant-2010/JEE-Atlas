@@ -229,12 +229,12 @@ function renderResults(items) {
               <a href="${href}"><b>${escapeHtml(x.title)}</b></a>
             </div>
 
-            ${manageMode ? `
-              <div class="result-actions">
-                <button class="edit-note" data-path="${escapeHtml(p)}" title="Edit this note">✏️</button>
+            <div class="result-actions">
+              <button class="edit-note" data-path="${escapeHtml(p)}" title="Edit this note">✏️</button>
+              ${manageMode ? `
                 <button class="delete-note" data-path="${escapeHtml(p)}" title="Delete this note">🗑</button>
-              </div>
-            ` : ""}
+              ` : ""}
+            </div>
           </div>
 
           <div class="meta">${escapeHtml(x.subject)} • ${escapeHtml(x.exam)} • ${escapeHtml(x.topic)}</div>
@@ -443,6 +443,46 @@ function extractTitle(mdBody) {
   };
 }
 
+function setEditMode(path = null) {
+  editingPath = path;
+
+  const openBtn = document.getElementById("openGithub");
+  const cancelBtn = document.getElementById("cancelEdit");
+
+  if (openBtn) {
+    openBtn.textContent = path ? "Submit Update Suggestion" : "Submit Suggestion";
+  }
+
+  if (cancelBtn) {
+    cancelBtn.style.display = path ? "inline-block" : "none";
+  }
+}
+
+function clearEditorForm() {
+  document.getElementById("add_topic").value = "";
+  document.getElementById("add_tags").value = "";
+  document.getElementById("add_title").value = "";
+  document.getElementById("add_body").value = "";
+  document.getElementById("mdPreview").textContent = "";
+
+  const openBtn = document.getElementById("openGithub");
+  if (openBtn) openBtn.disabled = true;
+
+  generatedMd = "";
+  setEditMode(null);
+
+  closeSuggestionBox("bodySuggestions");
+  closeSuggestionBox("titleSuggestions");
+
+  // image section
+  const imageList = document.getElementById("imageList");
+  if (imageList) imageList.innerHTML = "";
+  const imageUrl = document.getElementById("add_image_url");
+  const imageAlt = document.getElementById("add_image_alt");
+  if (imageUrl) imageUrl.value = "";
+  if (imageAlt) imageAlt.value = "";
+}
+
 async function loadNoteForEditing(path) {
   try {
     const res = await fetch(`./${path}`);
@@ -451,8 +491,6 @@ async function loadNoteForEditing(path) {
     const md = await res.text();
     const parsed = parseFrontmatter(md);
     const content = extractTitle(parsed.body);
-
-    editingPath = path;
 
     const subject = parsed.frontmatter.subject || "";
     const exam = parsed.frontmatter.exam || "";
@@ -465,8 +503,8 @@ async function loadNoteForEditing(path) {
     const addTags = document.getElementById("add_tags");
     const addTitle = document.getElementById("add_title");
     const addBody = document.getElementById("add_body");
-    const openBtn = document.getElementById("openGithub");
     const preview = document.getElementById("mdPreview");
+    const openBtn = document.getElementById("openGithub");
 
     if (addSubject && subject) addSubject.value = subject.replace(/[\[\]]/g, "");
     if (addExam && exam) addExam.value = exam.replace(/[\[\]]/g, "");
@@ -478,10 +516,9 @@ async function loadNoteForEditing(path) {
     if (preview) preview.textContent = "";
     generatedMd = "";
 
-    if (openBtn) {
-      openBtn.disabled = false;
-      openBtn.textContent = "Submit Update Suggestion";
-    }
+    if (openBtn) openBtn.disabled = false;
+
+    setEditMode(path);
 
     window.scrollTo({
       top: document.body.scrollHeight,
@@ -490,6 +527,20 @@ async function loadNoteForEditing(path) {
   } catch (err) {
     alert(err.message || "Could not load note for editing.");
   }
+}
+
+function collectImageMarkdown() {
+  const imageItems = Array.from(document.querySelectorAll(".image-item"));
+  if (!imageItems.length) return "";
+
+  const lines = ["", "## Images", ""];
+  imageItems.forEach(item => {
+    const url = item.getAttribute("data-url") || "";
+    const alt = item.getAttribute("data-alt") || "image";
+    if (url) lines.push(`![${alt}](${url})`);
+  });
+  lines.push("");
+  return lines.join("\n");
 }
 
 function generateMarkdown() {
@@ -504,6 +555,7 @@ function generateMarkdown() {
 
   const today = new Date().toISOString().slice(0, 10);
   const id = `${slugify(subject)}_${slugify(topic)}_${slugify(title)}_${today}`.replace(/-+/g, "_");
+  const imageMarkdown = collectImageMarkdown();
 
   generatedMd =
 `---
@@ -517,7 +569,7 @@ last_updated: ${today}
 
 # ${title}
 
-${body || "Write your content here..."}
+${body || "Write your content here..."}${imageMarkdown}
 `;
 
   const preview = document.getElementById("mdPreview");
@@ -527,8 +579,7 @@ ${body || "Write your content here..."}
   if (openBtn) openBtn.disabled = false;
 }
 
-/* Secure GitHub-native proposal flow:
-   opens a prefilled GitHub Issue instead of direct repo write */
+/* Secure GitHub-native proposal flow */
 function openGithubCommit() {
   const OWNER = "singh-nishant-2010";
   const REPO = "JEE-Atlas";
@@ -587,6 +638,43 @@ Please review and merge this into the knowledge base.
     `https://github.com/${OWNER}/${REPO}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
 
   window.open(url, "_blank");
+}
+
+// ---------------- Images ----------------
+function addImageToNote(url, alt) {
+  const trimmedUrl = (url || "").trim();
+  const trimmedAlt = (alt || "").trim() || "image";
+
+  if (!trimmedUrl) {
+    alert("Enter an image URL first.");
+    return;
+  }
+
+  const list = document.getElementById("imageList");
+  if (!list) return;
+
+  const item = document.createElement("div");
+  item.className = "image-item";
+  item.setAttribute("data-url", trimmedUrl);
+  item.setAttribute("data-alt", trimmedAlt);
+
+  item.innerHTML = `
+    <div class="image-item-left">
+      <img src="${trimmedUrl}" alt="${escapeHtml(trimmedAlt)}" class="image-thumb" />
+      <div class="image-item-meta">
+        <div class="image-item-alt">${escapeHtml(trimmedAlt)}</div>
+        <div class="image-item-url">${escapeHtml(trimmedUrl)}</div>
+      </div>
+    </div>
+    <button type="button" class="remove-image" title="Remove image">✖</button>
+  `;
+
+  list.appendChild(item);
+
+  const imageUrl = document.getElementById("add_image_url");
+  const imageAlt = document.getElementById("add_image_alt");
+  if (imageUrl) imageUrl.value = "";
+  if (imageAlt) imageAlt.value = "";
 }
 
 // ---------------- Theme Toggle ----------------
@@ -811,13 +899,16 @@ document.addEventListener("click", (e) => {
     return;
   }
 
+  const removeImageBtn = e.target.closest(".remove-image");
+  if (removeImageBtn) {
+    const imageItem = removeImageBtn.closest(".image-item");
+    if (imageItem) imageItem.remove();
+    return;
+  }
+
   if (!e.target.closest(".search-wrap")) closeSuggestionBox("searchSuggestions");
-  if (!e.target.closest(".input-wrap") || !e.target.closest("#add_title")) {
-    if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
-  }
-  if (!e.target.closest(".input-wrap") || !e.target.closest("#add_body")) {
-    if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
-  }
+  if (!e.target.closest("#add_title")) closeSuggestionBox("titleSuggestions");
+  if (!e.target.closest("#add_body")) closeSuggestionBox("bodySuggestions");
 });
 
 // ---------------- Wire everything after DOM ready ----------------
@@ -846,28 +937,27 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("gen")?.addEventListener("click", generateMarkdown);
   document.getElementById("openGithub")?.addEventListener("click", openGithubCommit);
 
+  document.getElementById("cancelEdit")?.addEventListener("click", () => {
+    clearEditorForm();
+  });
+
   document.getElementById("clearMd")?.addEventListener("click", () => {
     const box = document.getElementById("add_body");
-    if (!box || !box.value.trim()) return;
-
-    const confirmClear = confirm("Clear the markdown text?");
-    if (!confirmClear) return;
-
-    box.value = "";
-    const prev = document.getElementById("mdPreview");
-    if (prev) prev.textContent = "";
-
-    generatedMd = "";
-    editingPath = null;
-
-    const openBtn = document.getElementById("openGithub");
-    if (openBtn) {
-      openBtn.textContent = "Submit Suggestion";
-      openBtn.disabled = true;
+    if (!box || !box.value.trim()) {
+      clearEditorForm();
+      return;
     }
 
-    closeSuggestionBox("bodySuggestions");
-    closeSuggestionBox("titleSuggestions");
+    const confirmClear = confirm("Clear the text and cancel editing?");
+    if (!confirmClear) return;
+
+    clearEditorForm();
+  });
+
+  document.getElementById("addImageBtn")?.addEventListener("click", () => {
+    const imageUrl = document.getElementById("add_image_url")?.value || "";
+    const imageAlt = document.getElementById("add_image_alt")?.value || "";
+    addImageToNote(imageUrl, imageAlt);
   });
 
   document.getElementById("mic")?.addEventListener("click", startVoice);

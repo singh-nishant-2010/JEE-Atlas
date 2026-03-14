@@ -638,3 +638,72 @@ button:disabled {
 .delete-note:hover {
   background: var(--input);
 }
+
+.image-block {
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.image-block h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.image-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--input);
+}
+
+.image-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.image-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.image-item-meta {
+  min-width: 0;
+}
+
+.image-item-alt {
+  font-weight: 600;
+}
+
+.image-item-url {
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.remove-image {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px 10px;
+}

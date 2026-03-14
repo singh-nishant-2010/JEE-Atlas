@@ -128,6 +128,22 @@
             <div id="bodySuggestions" class="suggestions"></div>
         </div>
 
+        <div class="image-block">
+            <h3>Images / Screenshots</h3>
+
+            <div class="row">
+                <input id="add_image_url" placeholder="Image URL e.g. https://.../diagram.png" />
+                <input id="add_image_alt" placeholder="Alt text e.g. Free body diagram" />
+            </div>
+
+            <div class="row">
+                <button id="addImageBtn" type="button">Add Image</button>
+                <button id="cancelEdit" type="button" style="display:none;">Cancel Edit</button>
+            </div>
+
+            <div id="imageList" class="image-list"></div>
+        </div>
+
         <div class="row">
             <button id="gen">Generate Markdown</button>
             <button id="clearMd">Clear</button>
